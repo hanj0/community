@@ -1,34 +1,55 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import type { AnyPost, PageType, User } from '../types';
-import { ALL_POSTS, CHANNELS, PAGE_SIZE } from '../constants/data';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { PostSummary, PeriodType } from '../types';
+import { fetchHotPosts } from '../api/posts';
+import { useChannels } from '../hooks/useChannels';
 import HotPostCard from '../components/post/HotPostCard';
 import Sidebar from '../components/layout/Sidebar';
 
-interface HotPageProps {
-  onBack: () => void;
-  onPostClick: (post: AnyPost) => void;
-  user: User | null;
-  onNavigate: (page: PageType) => void;
-}
+const PAGE_SIZE = 20;
 
-export default function HotPage({ onBack, onPostClick, user, onNavigate }: HotPageProps) {
-  const [period, setPeriod] = useState('24h');
-  const [channel, setChannel] = useState('all');
-  const [displayCount, setDisplayCount] = useState(PAGE_SIZE);
+export default function HotPage() {
+  const navigate = useNavigate();
+  const channels = useChannels();
+  const [period, setPeriod] = useState<PeriodType>('24h');
+  const [channelId, setChannelId] = useState('all');
+  const [posts, setPosts] = useState<PostSummary[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const filtered = ALL_POSTS.filter(p =>
-    channel === 'all' ? true : p.channel === CHANNELS.find(c => c.id === channel)?.name
+  const colorMap = useMemo(
+    () => Object.fromEntries(channels.map(c => [c.id, c.color])),
+    [channels],
   );
-  const pinned = filtered.filter(p => p.isPin);
-  const normal = filtered.filter(p => !p.isPin);
-  const visible = normal.slice(0, displayCount);
-  const hasMore = displayCount < normal.length;
 
-  const loadMore = useCallback(() => {
+  const loadMore = useCallback(async (nextPage: number, reset: boolean) => {
+    if (loading) return;
     setLoading(true);
-    setTimeout(() => { setDisplayCount(n => n + PAGE_SIZE); setLoading(false); }, 600);
-  }, []);
+    try {
+      const res = await fetchHotPosts({
+        page: nextPage,
+        size: PAGE_SIZE,
+        period,
+        channelId: channelId === 'all' ? undefined : channelId,
+      });
+      setPosts(prev => reset ? res.data : [...prev, ...res.data]);
+      setHasMore(nextPage + 1 < res.meta.totalPages);
+      setPage(nextPage + 1);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, period, channelId]);
+
+  useEffect(() => {
+    setPosts([]);
+    setPage(0);
+    setHasMore(true);
+    loadMore(0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, channelId]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -36,19 +57,23 @@ export default function HotPage({ onBack, onPostClick, user, onNavigate }: HotPa
   useEffect(() => {
     if (!sentinelRef.current) return;
     observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !loading) loadMore();
+      if (entries[0].isIntersecting && hasMore && !loading) {
+        loadMore(page, false);
+      }
     }, { threshold: 0.1 });
     observerRef.current.observe(sentinelRef.current);
     return () => observerRef.current?.disconnect();
-  }, [hasMore, loading, loadMore]);
+  }, [hasMore, loading, page, loadMore]);
 
+  const pinned = posts.filter(p => p.isPinned);
+  const normal = posts.filter(p => !p.isPinned);
   let rank = 1;
 
   return (
     <div className="hotpg">
       <div className="hotmn">
         <div className="pghd">
-          <button className="bbtn" onClick={onBack}>← 홈으로</button>
+          <button className="bbtn" onClick={() => navigate('/')}>← 홈으로</button>
           <span style={{ color: 'var(--t3)', fontSize: 13 }}>/</span>
           <span className="pgtit">인기글</span>
           <span className="bhot" style={{ fontSize: 11, padding: '3px 9px' }}>HOT</span>
@@ -57,21 +82,29 @@ export default function HotPage({ onBack, onPostClick, user, onNavigate }: HotPa
           <span className="flbl">기간</span>
           <div className="chips">
             {([['24h', '24시간'], ['7d', '7일'], ['30d', '30일']] as const).map(([v, l]) => (
-              <button key={v} className={'chip' + (period === v ? ' active' : '')}
-                onClick={() => { setPeriod(v); setDisplayCount(PAGE_SIZE); }}>
+              <button
+                key={v}
+                className={'chip' + (period === v ? ' active' : '')}
+                onClick={() => setPeriod(v)}
+              >
                 {l}
               </button>
             ))}
           </div>
           <span className="flbl" style={{ marginLeft: 8 }}>채널</span>
           <div className="chips">
-            <button className={'chip' + (channel === 'all' ? ' active' : '')}
-              onClick={() => { setChannel('all'); setDisplayCount(PAGE_SIZE); }}>
+            <button
+              className={'chip' + (channelId === 'all' ? ' active' : '')}
+              onClick={() => setChannelId('all')}
+            >
               전체
             </button>
-            {CHANNELS.map(ch => (
-              <button key={ch.id} className={'chip' + (channel === ch.id ? ' active' : '')}
-                onClick={() => { setChannel(ch.id); setDisplayCount(PAGE_SIZE); }}>
+            {channels.map(ch => (
+              <button
+                key={ch.id}
+                className={'chip' + (channelId === ch.id ? ' active' : '')}
+                onClick={() => setChannelId(ch.id)}
+              >
                 {ch.name}
               </button>
             ))}
@@ -81,12 +114,33 @@ export default function HotPage({ onBack, onPostClick, user, onNavigate }: HotPa
         {pinned.length > 0 && (
           <>
             <div style={{ fontSize: 11, color: 'var(--t3)', marginBottom: 6 }}>고정글</div>
-            {pinned.map(p => <HotPostCard key={p.id} post={p} rank={rank++} onClick={() => onPostClick(p)} />)}
+            {pinned.map(p => (
+              <HotPostCard
+                key={p.id}
+                post={p}
+                channelColor={colorMap[p.channelId] ?? '#888'}
+                rank={rank++}
+                onClick={() => navigate(`/posts/${p.id}`)}
+              />
+            ))}
             <div className="dvlbl"><span>인기순</span></div>
           </>
         )}
-        {normal.length === 0 && <div className="empty">해당 조건의 인기글이 없습니다.</div>}
-        {visible.map(p => <HotPostCard key={p.id} post={p} rank={rank++} onClick={() => onPostClick(p)} />)}
+
+        {!loading && posts.length === 0 && (
+          <div className="empty">해당 조건의 인기글이 없습니다.</div>
+        )}
+
+        {normal.map(p => (
+          <HotPostCard
+            key={p.id}
+            post={p}
+            channelColor={colorMap[p.channelId] ?? '#888'}
+            rank={rank++}
+            onClick={() => navigate(`/posts/${p.id}`)}
+          />
+        ))}
+
         {loading && <div className="lrow"><div className="spin" /><span>불러오는 중...</span></div>}
         {hasMore && !loading && <div ref={sentinelRef} style={{ height: 1 }} />}
         {!hasMore && normal.length > 0 && (
@@ -95,7 +149,7 @@ export default function HotPage({ onBack, onPostClick, user, onNavigate }: HotPa
           </div>
         )}
       </div>
-      <Sidebar user={user} onNavigate={onNavigate} />
+      <Sidebar />
     </div>
   );
 }

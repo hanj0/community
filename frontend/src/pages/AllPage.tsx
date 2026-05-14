@@ -1,46 +1,57 @@
-import { useState } from 'react';
-import type { AnyPost, PageType, SortType, User, ViewType } from '../types';
-import { FEED_POSTS, CHANNELS, ITEMS_PER_PAGE } from '../constants/data';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { PostSummary, PageMeta, SortType, ViewType } from '../types';
+import { fetchPosts } from '../api/posts';
+import { useChannels } from '../hooks/useChannels';
 import FeedCard from '../components/post/FeedCard';
 import FeedCompact from '../components/post/FeedCompact';
 import Pagination from '../components/common/Pagination';
 import Sidebar from '../components/layout/Sidebar';
 
-interface AllPageProps {
-  onPostClick: (post: AnyPost) => void;
-  user: User | null;
-  onNavigate: (page: PageType) => void;
-}
+const PAGE_SIZE = 20;
 
-const ALL_CH_NAV = [{ id: 'all', name: '전체' }, ...CHANNELS];
-
-export default function AllPage({ onPostClick, user, onNavigate }: AllPageProps) {
-  const [channel, setChannel] = useState('all');
+export default function AllPage() {
+  const navigate = useNavigate();
+  const channels = useChannels();
+  const [channelId, setChannelId] = useState('all');
   const [sort, setSort] = useState<SortType>('latest');
   const [view, setView] = useState<ViewType>('card');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [posts, setPosts] = useState<PostSummary[]>([]);
+  const [meta, setMeta] = useState<PageMeta>({ page: 0, size: PAGE_SIZE, total: 0, totalPages: 0 });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const notices = FEED_POSTS.filter(p => p.isNotice);
-  const nonNotice = FEED_POSTS.filter(p => !p.isNotice);
+  const colorMap = useMemo(
+    () => Object.fromEntries(channels.map(c => [c.id, c.color])),
+    [channels],
+  );
 
-  const filtered = nonNotice.filter(p => {
-    const matchCh = channel === 'all' || p.channel === CHANNELS.find(c => c.id === channel)?.name;
-    const matchQ = search === '' || p.title.includes(search) || p.author.includes(search);
-    return matchCh && matchQ;
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (sort === 'latest')   return b.id - a.id;
-    if (sort === 'likes')    return b.likes - a.likes;
-    if (sort === 'comments') return b.comments - a.comments;
-    if (sort === 'views')    return b.views - a.views;
-    return 0;
-  });
-
-  const totalCount = sorted.length;
-  const paginated = sorted.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetchPosts({
+          page: currentPage - 1,
+          size: PAGE_SIZE,
+          channelId: channelId === 'all' ? undefined : channelId,
+          sort,
+          search: search || undefined,
+        });
+        if (active) { setPosts(res.data); setMeta(res.meta); }
+      } catch (e: unknown) {
+        if (active) setError(e instanceof Error ? e.message : '오류가 발생했습니다.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    void load();
+    return () => { active = false; };
+  }, [channelId, sort, search, currentPage]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,10 +59,22 @@ export default function AllPage({ onPostClick, user, onNavigate }: AllPageProps)
     setCurrentPage(1);
   };
 
+  const handleChannelChange = (id: string) => {
+    setChannelId(id);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (s: SortType) => {
+    setSort(s);
+    setCurrentPage(1);
+  };
+
   const handlePageChange = (p: number) => {
     setCurrentPage(p);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const allChannelNav = [{ id: 'all', name: '전체', color: '' }, ...channels];
 
   return (
     <div className="allpg">
@@ -68,7 +91,11 @@ export default function AllPage({ onPostClick, user, onNavigate }: AllPageProps)
                 onChange={e => setSearchInput(e.target.value)}
               />
             </form>
-            <select className="ssel" value={sort} onChange={e => { setSort(e.target.value as SortType); setCurrentPage(1); }}>
+            <select
+              className="ssel"
+              value={sort}
+              onChange={e => handleSortChange(e.target.value as SortType)}
+            >
               <option value="latest">최신순</option>
               <option value="likes">좋아요순</option>
               <option value="comments">댓글순</option>
@@ -82,23 +109,20 @@ export default function AllPage({ onPostClick, user, onNavigate }: AllPageProps)
         </div>
 
         <div className="chtabs">
-          {ALL_CH_NAV.map(ch => (
-            <button key={ch.id} className={'chnt' + (channel === ch.id ? ' active' : '')}
-              onClick={() => { setChannel(ch.id); setCurrentPage(1); }}>
+          {allChannelNav.map(ch => (
+            <button
+              key={ch.id}
+              className={'chnt' + (channelId === ch.id ? ' active' : '')}
+              onClick={() => handleChannelChange(ch.id)}
+            >
               {ch.name}
             </button>
           ))}
         </div>
 
-        {channel === 'all' && notices.length > 0 && (
-          <div className="cmpc" style={{ marginBottom: 10 }}>
-            {notices.map(p => <FeedCompact key={p.id} post={p} onClick={() => onPostClick(p)} />)}
-          </div>
-        )}
-
         {search && (
           <div className="rcnt">
-            "{search}" 검색 결과 {totalCount}건
+            "{search}" 검색 결과 {meta.total}건
             <button
               onClick={() => { setSearch(''); setSearchInput(''); setCurrentPage(1); }}
               style={{ marginLeft: 8, fontSize: 11, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
@@ -108,18 +132,40 @@ export default function AllPage({ onPostClick, user, onNavigate }: AllPageProps)
           </div>
         )}
 
-        {paginated.length === 0 && (
+        {loading && <div className="lrow"><div className="spin" /><span>불러오는 중...</span></div>}
+        {error && <div className="empty" style={{ color: 'var(--danger, #E24B4A)' }}>{error}</div>}
+
+        {!loading && !error && posts.length === 0 && (
           <div className="empty">{search ? `"${search}"에 해당하는 글이 없습니다.` : '게시글이 없습니다.'}</div>
         )}
 
-        {view === 'card'
-          ? paginated.map(p => <FeedCard key={p.id} post={p} onClick={() => onPostClick(p)} />)
-          : <div className="cmpc">{paginated.map(p => <FeedCompact key={p.id} post={p} onClick={() => onPostClick(p)} />)}</div>
-        }
+        {!loading && !error && (
+          view === 'card'
+            ? posts.map(p => (
+              <FeedCard
+                key={p.id}
+                post={p}
+                channelColor={colorMap[p.channelId] ?? '#888'}
+                onClick={() => navigate(`/posts/${p.id}`)}
+              />
+            ))
+            : (
+              <div className="cmpc">
+                {posts.map(p => (
+                  <FeedCompact
+                    key={p.id}
+                    post={p}
+                    channelColor={colorMap[p.channelId] ?? '#888'}
+                    onClick={() => navigate(`/posts/${p.id}`)}
+                  />
+                ))}
+              </div>
+            )
+        )}
 
-        <Pagination current={currentPage} total={totalCount} onChange={handlePageChange} />
+        <Pagination current={currentPage} totalPages={meta.totalPages} onChange={handlePageChange} />
       </div>
-      <Sidebar user={user} onNavigate={onNavigate} />
+      <Sidebar />
     </div>
   );
 }

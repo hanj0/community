@@ -1,14 +1,13 @@
-import type { PageType, User } from '../../types';
-import { CHANNELS, TRENDING } from '../../constants/data';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { useChannels } from '../../hooks/useChannels';
+import { TRENDING } from '../../constants/data';
 
-interface SidebarProps {
-  user: User | null;
-  onNavigate: (page: PageType) => void;
-}
+export default function Sidebar() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const channels = useChannels();
 
-const CHANNEL_COUNTS = [4231, 2891, 1540, 3012, 5821];
-
-export default function Sidebar({ user, onNavigate }: SidebarProps) {
   return (
     <div className="sidebar">
       <div className="card">
@@ -22,7 +21,7 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
                   <div className="usc">활동점수 0</div>
                 </div>
               </div>
-              <button className="wbtn">글쓰기</button>
+              <button className="wbtn" onClick={() => navigate('/write')}>글쓰기</button>
               <div className="abr">
                 <button className="abtn">북마크</button>
                 <button className="abtn">알림 ●</button>
@@ -33,9 +32,9 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
               <div style={{ fontSize: 13, color: 'var(--t2)', marginBottom: 8 }}>
                 로그인하고 더 많은 기능을 이용해보세요
               </div>
-              <button className="wbtn" onClick={() => onNavigate('login')}>로그인</button>
+              <button className="wbtn" onClick={() => navigate('/login')}>로그인</button>
               <div className="abr">
-                <button className="abtn" onClick={() => onNavigate('signup')}>회원가입</button>
+                <button className="abtn" onClick={() => navigate('/signup')}>회원가입</button>
               </div>
             </>
           )}
@@ -45,13 +44,18 @@ export default function Sidebar({ user, onNavigate }: SidebarProps) {
       <div className="card">
         <div className="chd"><span className="ct">채널</span></div>
         <div className="sbb">
-          {CHANNELS.map((ch, i) => (
+          {channels.map(ch => (
             <div className="chitem" key={ch.id}>
               <div className="chdot" style={{ background: ch.color }} />
               <span className="chnm">{ch.name}</span>
-              <span className="chcnt">글 {CHANNEL_COUNTS[i].toLocaleString()}</span>
+              {ch.postCount !== undefined && (
+                <span className="chcnt">글 {ch.postCount.toLocaleString()}</span>
+              )}
             </div>
           ))}
+          {channels.length === 0 && (
+            <div style={{ fontSize: 12, color: 'var(--t3)', padding: '8px 0' }}>채널 로딩 중...</div>
+          )}
         </div>
       </div>
 

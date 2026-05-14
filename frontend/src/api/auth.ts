@@ -1,36 +1,45 @@
-import type { AuthResponse, LoginRequest, SignupRequest, User } from '../types';
+import type { LoginRequest, SignupRequest, User } from '../types';
 
 const BASE = '/api/auth';
 
 async function handleResponse<T>(res: Response): Promise<T> {
+  const body = await res.json().catch(() => null);
   if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    throw new Error(err?.message ?? '서버 오류가 발생했습니다.');
+    throw new Error(body?.error?.message ?? '서버 오류가 발생했습니다.');
   }
-  return res.json();
+  return body.data as T;
 }
 
-export async function signup(data: SignupRequest): Promise<AuthResponse> {
+export async function signup(data: SignupRequest): Promise<User> {
   const res = await fetch(`${BASE}/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
-  return handleResponse<AuthResponse>(res);
+  return handleResponse<User>(res);
 }
 
-export async function login(data: LoginRequest): Promise<AuthResponse> {
+export async function login(data: LoginRequest): Promise<User> {
   const res = await fetch(`${BASE}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(data),
   });
-  return handleResponse<AuthResponse>(res);
+  return handleResponse<User>(res);
 }
 
-export async function getMe(token: string): Promise<User> {
+export async function logout(): Promise<void> {
+  await fetch(`${BASE}/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+}
+
+export async function getMe(): Promise<User> {
   const res = await fetch(`${BASE}/me`, {
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: 'include',
   });
   return handleResponse<User>(res);
 }

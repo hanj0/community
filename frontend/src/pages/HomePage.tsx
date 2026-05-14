@@ -1,20 +1,37 @@
-import { useState } from 'react';
-import type { AnyPost, PageType, User } from '../types';
-import { ALL_POSTS, RECENT_POSTS, NOTICES_TEXT } from '../constants/data';
+import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { PostSummary } from '../types';
+import { fetchHotPosts, fetchPosts } from '../api/posts';
+import { useChannels } from '../hooks/useChannels';
+import { NOTICES_TEXT } from '../constants/data';
+import { formatRelativeTime } from '../utils/time';
 import PostRankItem from '../components/post/PostRankItem';
 import ChTag from '../components/common/ChTag';
 import Sidebar from '../components/layout/Sidebar';
 
-interface HomePageProps {
-  onGoHot: () => void;
-  onPostClick: (post: AnyPost) => void;
-  user: User | null;
-  onNavigate: (page: PageType) => void;
-}
+export default function HomePage() {
+  const navigate = useNavigate();
+  const channels = useChannels();
+  const [period, setPeriod] = useState<'24h' | '7d' | '30d'>('24h');
+  const [hotPosts, setHotPosts] = useState<PostSummary[]>([]);
+  const [recentPosts, setRecentPosts] = useState<PostSummary[]>([]);
 
-export default function HomePage({ onGoHot, onPostClick, user, onNavigate }: HomePageProps) {
-  const [period, setPeriod] = useState('24h');
-  const top5 = ALL_POSTS.slice(0, 5);
+  const colorMap = useMemo(
+    () => Object.fromEntries(channels.map(c => [c.id, c.color])),
+    [channels],
+  );
+
+  useEffect(() => {
+    fetchHotPosts({ period, size: 5 })
+      .then(res => setHotPosts(res.data))
+      .catch(() => {});
+  }, [period]);
+
+  useEffect(() => {
+    fetchPosts({ sort: 'latest', size: 5 })
+      .then(res => setRecentPosts(res.data.filter(p => !p.isNotice)))
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="layout">
@@ -27,16 +44,28 @@ export default function HomePage({ onGoHot, onPostClick, user, onNavigate }: Hom
             </div>
             <div className="ptabs">
               {([['24h', '24시간'], ['7d', '7일'], ['30d', '30일']] as const).map(([v, l]) => (
-                <button key={v} className={'ptab' + (period === v ? ' active' : '')} onClick={() => setPeriod(v)}>
+                <button
+                  key={v}
+                  className={'ptab' + (period === v ? ' active' : '')}
+                  onClick={() => setPeriod(v)}
+                >
                   {l}
                 </button>
               ))}
             </div>
           </div>
-          {top5.map((p) => (
-            <PostRankItem key={p.id} post={p} onClick={() => onPostClick(p)} />
-          ))}
-          <button className="mbtn" onClick={onGoHot}>인기글 더보기 →</button>
+          {hotPosts.length === 0
+            ? <div className="empty" style={{ padding: '20px 0', fontSize: 13 }}>인기글이 없습니다.</div>
+            : hotPosts.map(p => (
+              <PostRankItem
+                key={p.id}
+                post={p}
+                channelColor={colorMap[p.channelId] ?? '#888'}
+                onClick={() => navigate(`/posts/${p.id}`)}
+              />
+            ))
+          }
+          <button className="mbtn" onClick={() => navigate('/hot')}>인기글 더보기 →</button>
         </div>
 
         <div className="card">
@@ -51,26 +80,29 @@ export default function HomePage({ onGoHot, onPostClick, user, onNavigate }: Hom
 
         <div className="card">
           <div className="chd"><span className="ct">최신글</span><span className="bnew">NEW</span></div>
-          {RECENT_POSTS.map(p => (
-            <div className="reitem" key={p.id} onClick={() => onPostClick(p)}>
-              <div className="retop">
-                <ChTag channel={p.channel} channelColor={p.channelColor} />
-                <span className="retit">{p.title}</span>
-                {p.hasImg && <div className="ith" style={{ width: 34, height: 26, fontSize: 8 }}>IMG</div>}
+          {recentPosts.length === 0
+            ? <div className="empty" style={{ padding: '20px 0', fontSize: 13 }}>최신글이 없습니다.</div>
+            : recentPosts.map(p => (
+              <div className="reitem" key={p.id} onClick={() => navigate(`/posts/${p.id}`)}>
+                <div className="retop">
+                  <ChTag channel={p.channelName} channelColor={colorMap[p.channelId] ?? '#888'} />
+                  <span className="retit">{p.title}</span>
+                  {p.hasImage && <div className="ith" style={{ width: 34, height: 26, fontSize: 8 }}>IMG</div>}
+                </div>
+                <div className="pmeta">
+                  <span className="mi">{p.author}</span>
+                  <span className="mi">·</span>
+                  <span className="mi">{formatRelativeTime(p.createdAt)}</span>
+                  <span className="mi">♥ {p.likes}</span>
+                  <span className="mi">댓글 {p.commentCount}</span>
+                </div>
               </div>
-              <div className="pmeta">
-                <span className="mi">{p.author}</span>
-                <span className="mi">·</span>
-                <span className="mi">{p.time}</span>
-                <span className="mi">♥ {p.likes}</span>
-                <span className="mi">댓글 {p.comments}</span>
-              </div>
-            </div>
-          ))}
-          <button className="mbtn">전체 최신글 보기 →</button>
+            ))
+          }
+          <button className="mbtn" onClick={() => navigate('/all')}>전체 최신글 보기 →</button>
         </div>
       </div>
-      <Sidebar user={user} onNavigate={onNavigate} />
+      <Sidebar />
     </div>
   );
 }

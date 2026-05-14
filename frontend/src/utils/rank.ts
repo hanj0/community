@@ -1,8 +1,6 @@
-import { COLORS } from '../constants/data';
-
 export function rankColor(rank: number): string {
-  if (rank === 1) return COLORS.red;
-  if (rank === 2) return COLORS.amber;
-  if (rank === 3) return COLORS.green;
+  if (rank === 1) return '#E24B4A';
+  if (rank === 2) return '#EF9F27';
+  if (rank === 3) return '#639922';
   return '#B4B2A9';
 }

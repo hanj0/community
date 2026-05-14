@@ -1,24 +1,25 @@
-import type { User } from '../types';
-
-interface MyPageProps {
-  user: User;
-  onLogout: () => void;
-  onNavigate: (page: 'home' | 'all') => void;
-}
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function getInitial(username: string) {
-  return username.charAt(0).toUpperCase();
-}
+export default function MyPage() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-export default function MyPage({ user, onLogout, onNavigate }: MyPageProps) {
+  if (!user) return null;
+
+  function handleLogout() {
+    logout();
+    navigate('/', { replace: true });
+  }
+
   return (
     <div className="mypg">
       <div className="mypg-hd">
-        <div className="mypg-av">{getInitial(user.username)}</div>
+        <div className="mypg-av">{user.username.charAt(0).toUpperCase()}</div>
         <div className="mypg-nm">{user.username}</div>
         <div className="mypg-em">{user.email}</div>
         <div style={{ fontSize: 12, color: 'var(--t3)', marginBottom: 16 }}>
@@ -42,17 +43,17 @@ export default function MyPage({ user, onLogout, onNavigate }: MyPageProps) {
 
       <div className="mypg-sec">
         <div className="mypg-sch">활동</div>
-        <div className="mypg-act" onClick={() => onNavigate('home')}>
+        <div className="mypg-act" onClick={() => navigate('/')}>
           <span className="mypg-act-ic">📝</span>
           <span className="mypg-act-lbl">내가 쓴 글</span>
           <span className="mypg-act-val">0개 &rsaquo;</span>
         </div>
-        <div className="mypg-act" onClick={() => onNavigate('home')}>
+        <div className="mypg-act" onClick={() => navigate('/')}>
           <span className="mypg-act-ic">💬</span>
           <span className="mypg-act-lbl">내 댓글</span>
           <span className="mypg-act-val">0개 &rsaquo;</span>
         </div>
-        <div className="mypg-act" onClick={() => onNavigate('home')}>
+        <div className="mypg-act" onClick={() => navigate('/')}>
           <span className="mypg-act-ic">🔖</span>
           <span className="mypg-act-lbl">북마크</span>
           <span className="mypg-act-val">0개 &rsaquo;</span>
@@ -73,7 +74,7 @@ export default function MyPage({ user, onLogout, onNavigate }: MyPageProps) {
         </div>
       </div>
 
-      <button className="mypg-logout" onClick={onLogout}>로그아웃</button>
+      <button className="mypg-logout" onClick={handleLogout}>로그아웃</button>
     </div>
   );
 }

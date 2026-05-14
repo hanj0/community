@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import type { Comment, Reply } from '../../types';
+import type { CommentData } from '../../types';
+import { getAvatarStyle } from '../../utils/avatar';
+import { formatRelativeTime } from '../../utils/time';
 import CommentInput from './CommentInput';
 
 interface CommentItemProps {
-  comment: Comment | Reply;
+  comment: CommentData;
   isReply?: boolean;
 }
 
@@ -15,6 +17,8 @@ export default function CommentItem({ comment, isReply = false }: CommentItemPro
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
 
+  const { av, ab, ac } = getAvatarStyle(comment.author);
+
   const toggleLike = () => {
     if (liked) { setLikes(l => l - 1); setLiked(false); }
     else { setLikes(l => l + 1); setLiked(true); if (disliked) { setDislikes(d => d - 1); setDisliked(false); } }
@@ -25,29 +29,28 @@ export default function CommentItem({ comment, isReply = false }: CommentItemPro
     else { setDislikes(d => d + 1); setDisliked(true); if (liked) { setLikes(l => l - 1); setLiked(false); } }
   };
 
-  const replies = 'replies' in comment ? comment.replies : undefined;
-
-  const body = comment.isMention && comment.text.startsWith('@')
+  const isMention = comment.content.startsWith('@');
+  const body = isMention
     ? (
       <>
-        <span className="mnt">{comment.text.split(' ')[0]} </span>
-        {comment.text.split(' ').slice(1).join(' ')}
+        <span className="mnt">{comment.content.split(' ')[0]} </span>
+        {comment.content.split(' ').slice(1).join(' ')}
       </>
     )
-    : comment.text;
+    : comment.content;
 
   return (
     <>
       <div className={'cmt' + (isReply ? ' rp' : '')}>
         <div className="cmar">
           <div className="cma">
-            <div className="cmav" style={{ background: comment.ab, color: comment.ac }}>{comment.av}</div>
+            <div className="cmav" style={{ background: ab, color: ac }}>{av}</div>
             <div>
               <div className="cmnm">
                 {comment.author}
                 {comment.author === '작성자' && <span className="wrbg">작성자</span>}
               </div>
-              <div className="cmtm">{comment.time}</div>
+              <div className="cmtm">{formatRelativeTime(comment.createdAt)}</div>
             </div>
           </div>
           <div className="cmacts">
@@ -58,14 +61,14 @@ export default function CommentItem({ comment, isReply = false }: CommentItemPro
           </div>
         </div>
         <div className="cmtxt">{body}</div>
-        {!isReply && replies && replies.length > 0 && (
+        {!isReply && comment.replies.length > 0 && (
           <button className="rpt" onClick={() => setShowReplies(v => !v)}>
             {showReplies ? '▾ 답글 숨기기' : '▸ 답글 보기'}
-            <span className="rpb">{replies.length}</span>
+            <span className="rpb">{comment.replies.length}</span>
           </button>
         )}
       </div>
-      {!isReply && showReplies && replies?.map(r => (
+      {!isReply && showReplies && comment.replies.map(r => (
         <CommentItem key={r.id} comment={r} isReply={true} />
       ))}
       {showInput && !isReply && (

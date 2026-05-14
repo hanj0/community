@@ -1,0 +1,83 @@
+import type { CreatePostRequest, PostDetail, PagedResponse, PostSummary, CommentData } from '../types';
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  const body = await res.json().catch(() => null);
+  if (!res.ok) {
+    throw new Error(body?.error?.message ?? '서버 오류가 발생했습니다.');
+  }
+  return body.data as T;
+}
+
+function buildUrl(path: string, params: Record<string, string | number | undefined>): string {
+  const url = new URL(path, window.location.origin);
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== '') url.searchParams.set(k, String(v));
+  }
+  return url.toString();
+}
+
+export async function fetchPosts(params: {
+  page?: number;
+  size?: number;
+  channelId?: string;
+  sort?: string;
+  search?: string;
+}): Promise<PagedResponse<PostSummary>> {
+  const res = await fetch(
+    buildUrl('/api/posts', params as Record<string, string | number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('게시글 목록을 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<PostSummary>>;
+}
+
+export async function fetchHotPosts(params: {
+  page?: number;
+  size?: number;
+  channelId?: string;
+  period?: string;
+}): Promise<PagedResponse<PostSummary>> {
+  const res = await fetch(
+    buildUrl('/api/posts/hot', params as Record<string, string | number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('인기글 목록을 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<PostSummary>>;
+}
+
+export async function fetchPostDetail(id: number): Promise<PostDetail> {
+  const res = await fetch(`/api/posts/${id}`, { credentials: 'include' });
+  return handleResponse<PostDetail>(res);
+}
+
+export async function fetchComments(
+  postId: number,
+  params: { page?: number; size?: number },
+): Promise<PagedResponse<CommentData>> {
+  const res = await fetch(
+    buildUrl(`/api/posts/${postId}/comments`, params as Record<string, number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('댓글을 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<CommentData>>;
+}
+
+export async function createComment(postId: number, content: string): Promise<CommentData> {
+  const res = await fetch(`/api/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ content }),
+  });
+  return handleResponse<CommentData>(res);
+}
+
+export async function createPost(data: CreatePostRequest): Promise<PostDetail> {
+  const res = await fetch('/api/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  return handleResponse<PostDetail>(res);
+}

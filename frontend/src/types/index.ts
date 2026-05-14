@@ -1,58 +1,46 @@
-export interface Channel {
+export interface PageMeta {
+  page: number;
+  size: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PagedResponse<T> {
+  data: T[];
+  meta: PageMeta;
+}
+
+export interface ChannelData {
   id: string;
   name: string;
   color: string;
+  postCount?: number;
 }
 
-export interface BasePost {
+export interface PostSummary {
   id: number;
   title: string;
-  channel: string;
-  channelColor: string;
+  author: string;
+  createdAt: string;
+  channelId: string;
+  channelName: string;
   likes: number;
-  comments: number;
+  commentCount: number;
   views: number;
-  time: string;
-  author: string;
-  hasImg: boolean;
-}
-
-export interface Post extends BasePost {
-  score: number;
-  isPin: boolean;
-}
-
-export interface FeedPost extends BasePost {
+  hasImage: boolean;
   isNotice: boolean;
+  isPinned: boolean;
+  score?: number;
 }
 
-export type AnyPost = Post | FeedPost;
-
-export interface Reply {
+export interface CommentData {
   id: number;
   author: string;
-  av: string;
-  ab: string;
-  ac: string;
-  time: string;
-  text: string;
+  content: string;
+  createdAt: string;
   likes: number;
   dislikes: number;
-  isMention: boolean;
-}
-
-export interface Comment {
-  id: number;
-  author: string;
-  av: string;
-  ab: string;
-  ac: string;
-  time: string;
-  text: string;
-  likes: number;
-  dislikes: number;
-  isMention?: boolean;
-  replies: Reply[];
+  replies: CommentData[];
 }
 
 export interface TrendingItem {
@@ -60,7 +48,6 @@ export interface TrendingItem {
   d: string;
 }
 
-export type PageType = 'home' | 'hot' | 'all' | 'channel' | 'detail' | 'login' | 'signup' | 'mypage';
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
 export type PeriodType = '24h' | '7d' | '30d';
@@ -72,9 +59,29 @@ export interface User {
   createdAt: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
+export interface ApiErrorDetail {
+  field: string;
+  reason: string;
+}
+
+export interface CreatePostRequest {
+  title: string;
+  channelId: string;
+  content: string;
+}
+
+export interface PostDetail {
+  id: number;
+  title: string;
+  content: string;
+  channelId: string;
+  channelName: string;
+  authorName: string;
+  likes: number;
+  commentCount: number;
+  views: number;
+  createdAt: string;
+  isPinned?: boolean;
 }
 
 export interface SignupRequest {

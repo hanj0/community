@@ -1,13 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { signup } from '../api/auth';
-import type { User } from '../types';
+import { useAuth } from '../context/AuthContext';
 
-interface SignupPageProps {
-  onLogin: (user: User, token: string) => void;
-  onGoLogin: () => void;
-}
-
-export default function SignupPage({ onLogin, onGoLogin }: SignupPageProps) {
+export default function SignupPage() {
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
   const [form, setForm] = useState({ username: '', email: '', password: '', confirm: '' });
   const [errors, setErrors] = useState<Partial<typeof form>>({});
   const [serverError, setServerError] = useState('');
@@ -41,12 +39,13 @@ export default function SignupPage({ onLogin, onGoLogin }: SignupPageProps) {
 
     setLoading(true);
     try {
-      const { user, token } = await signup({
+      const user = await signup({
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
       });
-      onLogin(user, token);
+      setUser(user);
+      navigate('/', { replace: true });
     } catch (err) {
       setServerError(err instanceof Error ? err.message : '회원가입에 실패했습니다.');
     } finally {
@@ -125,7 +124,7 @@ export default function SignupPage({ onLogin, onGoLogin }: SignupPageProps) {
 
         <div className="auth-link">
           이미 계정이 있으신가요?{' '}
-          <button onClick={onGoLogin}>로그인</button>
+          <button onClick={() => navigate('/login')}>로그인</button>
         </div>
       </div>
     </div>

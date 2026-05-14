@@ -1,60 +1,145 @@
-import { useState } from 'react';
-import type { AnyPost, Comment } from '../types';
-import { ALL_POSTS, FEED_POSTS, SAMPLE_COMMENTS, POST_BODY } from '../constants/data';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import type { PostDetail, PostSummary, CommentData } from '../types';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts } from '../api/posts';
+import { useChannels } from '../hooks/useChannels';
+import { formatRelativeTime } from '../utils/time';
 import { rankColor } from '../utils/rank';
 import ChTag from '../components/common/ChTag';
 import CommentItem from '../components/comment/CommentItem';
 import CommentInput from '../components/comment/CommentInput';
 
-interface PostDetailPageProps {
-  post: AnyPost;
-  onBack: () => void;
-  onPostClick: (post: AnyPost) => void;
-}
+const COMMENT_PAGE_SIZE = 20;
 
-export default function PostDetailPage({ post, onBack, onPostClick }: PostDetailPageProps) {
+export default function PostDetailPage() {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const postId = Number(id);
+  const channels = useChannels();
+
+  const [post, setPost] = useState<PostDetail | null>(null);
+  const [postLoading, setPostLoading] = useState(true);
+  const [postError, setPostError] = useState<string | null>(null);
+
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [likeCount, setLikeCount] = useState(post.likes);
-  const [comments, setComments] = useState<Comment[]>(SAMPLE_COMMENTS);
+  const [likeCount, setLikeCount] = useState(0);
 
-  const allPool = [...ALL_POSTS, ...FEED_POSTS.filter(p => !p.isNotice)];
-  const sameCh = allPool.filter(p => p.id !== post.id && p.channel === post.channel).slice(0, 5);
-  const byAuthor = ALL_POSTS.filter(p => p.author === post.author && p.id !== post.id).slice(0, 3);
+  const [comments, setComments] = useState<CommentData[]>([]);
+  const [commentPage, setCommentPage] = useState(0);
+  const [commentHasMore, setCommentHasMore] = useState(true);
+  const [commentLoading, setCommentLoading] = useState(false);
 
-  const idx = ALL_POSTS.findIndex(p => p.id === post.id);
-  const prevPost = idx > 0 ? ALL_POSTS[idx - 1] : null;
-  const nextPost = idx < ALL_POSTS.length - 1 ? ALL_POSTS[idx + 1] : null;
+  const [hotPosts, setHotPosts] = useState<PostSummary[]>([]);
+  const [channelPosts, setChannelPosts] = useState<PostSummary[]>([]);
 
-  const isPin = 'isPin' in post ? post.isPin : false;
+  const colorMap = useMemo(
+    () => Object.fromEntries(channels.map(c => [c.id, c.color])),
+    [channels],
+  );
+
+  useEffect(() => {
+    setPostLoading(true);
+    setPostError(null);
+    fetchPostDetail(postId)
+      .then(p => { setPost(p); setLikeCount(p.likes); })
+      .catch(e => setPostError(e.message))
+      .finally(() => setPostLoading(false));
+  }, [postId]);
+
+  const loadMoreComments = useCallback(async (nextPage: number) => {
+    if (commentLoading) return;
+    setCommentLoading(true);
+    try {
+      const res = await fetchComments(postId, { page: nextPage, size: COMMENT_PAGE_SIZE });
+      setComments(prev => nextPage === 0 ? res.data : [...prev, ...res.data]);
+      setCommentHasMore(nextPage + 1 < res.meta.totalPages);
+      setCommentPage(nextPage + 1);
+    } catch {
+      // ignore
+    } finally {
+      setCommentLoading(false);
+    }
+  }, [postId, commentLoading]);
+
+  useEffect(() => {
+    loadMoreComments(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId]);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && commentHasMore && !commentLoading) {
+        loadMoreComments(commentPage);
+      }
+    }, { threshold: 0.1 });
+    observerRef.current.observe(sentinelRef.current);
+    return () => observerRef.current?.disconnect();
+  }, [commentHasMore, commentLoading, commentPage, loadMoreComments]);
+
+  useEffect(() => {
+    if (!post) return;
+    fetchHotPosts({ size: 5 })
+      .then(res => setHotPosts(res.data))
+      .catch(() => {});
+    fetchPosts({ channelId: post.channelId, sort: 'likes', size: 6 })
+      .then(res => setChannelPosts(res.data.filter(p => p.id !== post.id).slice(0, 5)))
+      .catch(() => {});
+  }, [post]);
+
+  const handleAddComment = async (text: string) => {
+    try {
+      const newComment = await createComment(postId, text);
+      setComments(prev => [newComment, ...prev]);
+    } catch {
+      // ignore
+    }
+  };
 
   const toggleLike = () => {
     setLiked(v => !v);
     setLikeCount(n => liked ? n - 1 : n + 1);
   };
 
-  const handleAddComment = (text: string) => {
-    setComments(prev => [...prev, {
-      id: Date.now(),
-      author: '김개발',
-      av: '김',
-      ab: '#B5D4F4',
-      ac: '#0C447C',
-      time: '방금',
-      text,
-      likes: 0,
-      dislikes: 0,
-      replies: [],
-    }]);
-  };
+  const totalComments = comments.reduce((a, c) => a + 1 + c.replies.length, 0);
+
+  if (postLoading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--t3)', fontSize: 14 }}>
+        <div className="spin" style={{ margin: '0 auto 12px' }} />
+        불러오는 중...
+      </div>
+    );
+  }
+
+  if (postError || !post) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--t3)', fontSize: 14 }}>
+        {postError ?? '존재하지 않는 게시글입니다.'}
+        <br />
+        <button
+          style={{ marginTop: 12, fontSize: 13, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
+          홈으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  const channelColor = colorMap[post.channelId] ?? '#888';
 
   return (
     <div className="dtlyt">
       <div className="dtmn">
         <div className="bc">
-          <span className="bcl" onClick={onBack}>홈</span>
+          <span className="bcl" onClick={() => navigate('/')}>홈</span>
           <span className="bcs">/</span>
-          <span className="bcl">{post.channel}</span>
+          <span className="bcl">{post.channelName}</span>
           <span className="bcs">/</span>
           <span style={{ color: 'var(--t2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 340 }}>
             {post.title}
@@ -64,24 +149,23 @@ export default function PostDetailPage({ post, onBack, onPostClick }: PostDetail
         <div className="dtc">
           <div className="dthd">
             <div className="dtbg">
-              <ChTag channel={post.channel} channelColor={post.channelColor} />
-              {isPin && <span className="bpin">고정</span>}
+              <ChTag channel={post.channelName} channelColor={channelColor} />
+              {post.isPinned && <span className="bpin">고정</span>}
             </div>
             <div className="dttl">{post.title}</div>
             <div className="dtar">
               <div className="dta">
-                <div className="aav">{post.author.slice(0, 1)}</div>
+                <div className="aav">{post.authorName.slice(0, 1)}</div>
                 <div>
-                  <div className="anm">{post.author}</div>
-                  <div className="asb">{post.time} · 조회 {post.views.toLocaleString()}</div>
+                  <div className="anm">{post.authorName}</div>
+                  <div className="asb">{formatRelativeTime(post.createdAt)} · 조회 {post.views.toLocaleString()}</div>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="dtbd">
-            {post.hasImg && <div className="dtimg">첨부 이미지</div>}
-            {POST_BODY.map((p, i) => <p key={i}>{p}</p>)}
+            {post.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
           </div>
 
           <div className="dtac">
@@ -100,54 +184,28 @@ export default function PostDetailPage({ post, onBack, onPostClick }: PostDetail
           </div>
         </div>
 
-        <div className="dtc pnwrap" style={{ display: 'flex' }}>
-          <div className="pni" style={{ opacity: prevPost ? 1 : 0.4 }} onClick={() => prevPost && onPostClick(prevPost)}>
-            <div className="pnl">← 이전 글</div>
-            <div className="pnt">{prevPost ? prevPost.title : '이전 글 없음'}</div>
-          </div>
-          <div className="pni" style={{ textAlign: 'right' }} onClick={() => nextPost && onPostClick(nextPost)}>
-            <div className="pnl">다음 글 →</div>
-            <div className="pnt">{nextPost ? nextPost.title : '다음 글 없음'}</div>
-          </div>
-        </div>
-
         <div className="cmtc">
           <div className="cmthd">
             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--t1)' }}>댓글</span>
-            <span style={{ fontSize: 12, color: 'var(--t3)' }}>
-              {comments.length + comments.reduce((a, c) => a + (c.replies?.length ?? 0), 0)}개
-            </span>
+            <span style={{ fontSize: 12, color: 'var(--t3)' }}>{totalComments}개</span>
           </div>
           {comments.map(c => <CommentItem key={c.id} comment={c} />)}
+          {commentLoading && <div className="lrow"><div className="spin" /><span>불러오는 중...</span></div>}
+          {commentHasMore && !commentLoading && <div ref={sentinelRef} style={{ height: 1 }} />}
           <CommentInput onSubmit={handleAddComment} />
         </div>
       </div>
 
       <div className="dtsb">
         <div className="card">
-          <div className="chd"><span className="ct">{post.channel} 채널 인기글</span></div>
+          <div className="chd"><span className="ct">{post.channelName} 채널 인기글</span></div>
           <div className="sbb" style={{ padding: '6px 14px 10px' }}>
-            {sameCh.length === 0
+            {channelPosts.length === 0
               ? <div style={{ fontSize: 12, color: 'var(--t3)', padding: '8px 0' }}>추천 글이 없습니다.</div>
-              : sameCh.map(r => (
-                <div key={r.id} className="rci" onClick={() => onPostClick(r)}>
+              : channelPosts.map(r => (
+                <div key={r.id} className="rci" onClick={() => navigate(`/posts/${r.id}`)}>
                   <div className="rct">{r.title}</div>
-                  <div className="rcm"><span>♥ {r.likes}</span><span>댓글 {r.comments}</span></div>
-                </div>
-              ))
-            }
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="chd"><span className="ct">{post.author}의 다른 글</span></div>
-          <div className="sbb" style={{ padding: '6px 14px 10px' }}>
-            {byAuthor.length === 0
-              ? <div style={{ fontSize: 12, color: 'var(--t3)', padding: '8px 0' }}>다른 글이 없습니다.</div>
-              : byAuthor.map(r => (
-                <div key={r.id} className="rci" onClick={() => onPostClick(r)}>
-                  <div className="rct">{r.title}</div>
-                  <div className="rcm"><span>{r.time}</span><span>♥ {r.likes}</span></div>
+                  <div className="rcm"><span>♥ {r.likes}</span><span>댓글 {r.commentCount}</span></div>
                 </div>
               ))
             }
@@ -157,21 +215,25 @@ export default function PostDetailPage({ post, onBack, onPostClick }: PostDetail
         <div className="card">
           <div className="chd"><span className="ct">지금 인기글</span><span className="bhot">HOT</span></div>
           <div className="sbb" style={{ padding: '6px 14px 10px' }}>
-            {ALL_POSTS.slice(0, 5).map((r, i) => (
-              <div key={r.id} className="rci" onClick={() => onPostClick(r)}>
+            {hotPosts.map((r, i) => (
+              <div key={r.id} className="rci" onClick={() => navigate(`/posts/${r.id}`)}>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                   <span style={{ fontSize: 12, fontWeight: 700, color: rankColor(i + 1), flexShrink: 0, width: 16 }}>{i + 1}</span>
                   <div className="rct" style={{ flex: 1 }}>{r.title}</div>
                 </div>
                 <div className="rcm" style={{ paddingLeft: 22 }}>
-                  <span>♥ {r.likes}</span><span>댓글 {r.comments}</span>
+                  <span>♥ {r.likes}</span><span>댓글 {r.commentCount}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <button className="mbtn" style={{ background: 'var(--bg)', border: '.5px solid var(--b)', borderRadius: 12 }} onClick={onBack}>
+        <button
+          className="mbtn"
+          style={{ background: 'var(--bg)', border: '.5px solid var(--b)', borderRadius: 12 }}
+          onClick={() => navigate(-1)}
+        >
           ← 목록으로
         </button>
       </div>

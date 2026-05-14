@@ -1,19 +1,16 @@
-import { ITEMS_PER_PAGE } from '../../constants/data';
-
 interface PaginationProps {
   current: number;
-  total: number;
+  totalPages: number;
   onChange: (page: number) => void;
 }
 
-export default function Pagination({ current, total, onChange }: PaginationProps) {
-  const pages = Math.ceil(total / ITEMS_PER_PAGE);
-  if (pages <= 1) return null;
+export default function Pagination({ current, totalPages, onChange }: PaginationProps) {
+  if (totalPages <= 1) return null;
 
-  const range = Array.from({ length: Math.min(pages, 7) }, (_, i) => {
-    if (pages <= 7) return i + 1;
+  const range = Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+    if (totalPages <= 7) return i + 1;
     if (current <= 4) return i + 1;
-    if (current >= pages - 3) return pages - 6 + i;
+    if (current >= totalPages - 3) return totalPages - 6 + i;
     return current - 3 + i;
   });
 
@@ -26,8 +23,8 @@ export default function Pagination({ current, total, onChange }: PaginationProps
           {p}
         </button>
       ))}
-      <button className="pgb" onClick={() => onChange(current + 1)} disabled={current === pages}>›</button>
-      <button className="pgb" onClick={() => onChange(pages)} disabled={current === pages}>»</button>
+      <button className="pgb" onClick={() => onChange(current + 1)} disabled={current === totalPages}>›</button>
+      <button className="pgb" onClick={() => onChange(totalPages)} disabled={current === totalPages}>»</button>
     </div>
   );
 }

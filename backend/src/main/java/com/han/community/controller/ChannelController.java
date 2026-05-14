@@ -1,6 +1,7 @@
 package com.han.community.controller;
 
 import com.han.community.dto.ChannelDto;
+import com.han.community.global.response.SuccessResponse;
 import com.han.community.service.ChannelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +22,11 @@ public class ChannelController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ChannelDto.Response>> getChannels() {
+    public ResponseEntity<SuccessResponse<List<ChannelDto.Response>>> getChannels() {
 
         List<ChannelDto.Response> response = channelService.getChannels();
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.of(response));
     }
 }

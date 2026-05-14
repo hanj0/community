@@ -1,5 +1,6 @@
 package com.han.community.dto;
 
+import com.han.community.entity.Role;
 import com.han.community.entity.User;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -12,7 +13,7 @@ public class AuthDto {
     public static class LoginRequest {
 
         @NotBlank
-        private String username;
+        private String email;
         @NotBlank
         private String password;
     }
@@ -28,29 +29,33 @@ public class AuthDto {
         private String email;
     }
 
-    @Getter
-    @Builder
-    public static class LoginResponse {
-
-        private String username;
-        private String authorities;
-        private String sessionId;
-    }
-
-    @Getter
-    @Builder
-    public static class Response {
-
-        private Long id;
-        private String username;
-        private String email;
+    public record Response(
+            Long id,
+            String username,
+            String email
+    ) {
 
         public static Response from(User user) {
-            return Response.builder()
-                    .id(user.getId())
-                    .username(user.getUsername())
-                    .email(user.getEmail())
-                    .build();
+            return new Response(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail()
+            );
+        }
+    }
+
+    public record StatusResponse(
+            Long id,
+            String username,
+            String role
+    ) {
+
+        public static StatusResponse from(User user) {
+            return new StatusResponse(
+                    user.getId(),
+                    user.getUsername(),
+                    user.getRole().getAuthority()
+            );
         }
     }
 }

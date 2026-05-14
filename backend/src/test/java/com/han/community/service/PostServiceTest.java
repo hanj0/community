@@ -23,7 +23,7 @@ public class PostServiceTest {
                 new PostDto.CreateRequest();
 
         // when
-        Long postId = postService.create(request).getId();
+        Long postId = postService.create(request, 1L).getId();
 
         // then
         assertThat(postId).isNotNull();

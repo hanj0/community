@@ -2,9 +2,11 @@ package com.han.community.dto;
 
 import com.han.community.entity.Channel;
 import lombok.Builder;
+import lombok.Getter;
 
 public class ChannelDto {
 
+    @Getter
     @Builder
     public static class Response {
 

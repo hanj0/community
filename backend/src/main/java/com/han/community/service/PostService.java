@@ -2,8 +2,12 @@ package com.han.community.service;
 
 
 import com.han.community.dto.PostDto;
+import com.han.community.entity.Channel;
 import com.han.community.entity.Post;
+import com.han.community.entity.User;
+import com.han.community.repository.ChannelRepository;
 import com.han.community.repository.PostRepository;
+import com.han.community.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,18 +19,27 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final ChannelRepository channelRepository;
+    private final UserRepository userRepository;
 
-    public PostService(PostRepository postRepository) {
+    public PostService(PostRepository postRepository, ChannelRepository channelRepository, UserRepository userRepository) {
         this.postRepository = postRepository;
+        this.channelRepository = channelRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public PostDto.Response create(PostDto.CreateRequest dto) {
+    public PostDto.Response create(PostDto.CreateRequest requestDto, Long userId) {
 
-        // dto를 받아서 entity 인스턴스 만들고, repo 저장 후 id + 필드 반환
+        Channel channel = channelRepository.findById(requestDto.getChannelId())
+                .orElseThrow(() -> new IllegalArgumentException("채널 없음"));
+        User user = userRepository.getReferenceById(userId);
+
         Post post = new Post.Builder()
-                .title(dto.getTitle())
-                .content(dto.getContent())
+                .channel(channel)
+                .user(user)
+                .title(requestDto.getTitle())
+                .content(requestDto.getContent())
                 .build();
 
         Post savePost = postRepository.save(post);

@@ -8,12 +8,15 @@ import java.time.LocalDateTime;
 
 public class PostDto {
 
-    @Getter
     public static class CreateRequest {
 
+        private Long channelId;
         private String title;
         private String content;
 
+        public Long getChannelId() {
+            return this.channelId;
+        }
         public String getTitle() {
             return this.title;
         }

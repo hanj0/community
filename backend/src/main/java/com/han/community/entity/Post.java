@@ -7,15 +7,18 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-public class Post {
+public class Post extends BaseSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "channel_id")
     private Channel channel;
+
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
 
     private String title;
@@ -27,12 +30,7 @@ public class Post {
     private int dislikeCount;
     private int CommentCount;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
-
     protected Post() {}
-
 
     public void update(String title, String content) {
         this.title = title;
@@ -43,15 +41,27 @@ public class Post {
 
     // builder 패턴
     private Post(Builder builder) {
+        this.channel = builder.channel;
+        this.user = builder.user;
         this.title = builder.title;
         this.content = builder.content;
     }
 
     public static class Builder {
 
+        private Channel channel;
+        private User user;
         private String title;
         private String content;
 
+        public Builder channel(Channel channel) {
+            this.channel = channel;
+            return this;
+        }
+        public Builder user(User user) {
+            this.user = user;
+            return this;
+        }
         public Builder title(String title) {
             this.title = title;
             return this;

@@ -8,6 +8,7 @@ public class CommentDto {
     @Getter
     public static class CreateRequest {
 
+        private Long parentCommentId;
         private String content;
     }
 
@@ -18,6 +19,7 @@ public class CommentDto {
         private String content;
     }
 
+    @Getter
     @Builder
     public static class Response {
 

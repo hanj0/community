@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPost } from '../api/posts';
-import { CHANNELS } from '../constants/data';
+import { useChannels } from '../hooks/useChannels';
 
 export default function WritePostPage() {
   const navigate = useNavigate();
+  const channels = useChannels();
   const [form, setForm] = useState({ title: '', channelId: '', content: '' });
   const [errors, setErrors] = useState<Partial<typeof form>>({});
   const [serverError, setServerError] = useState('');
@@ -36,7 +37,7 @@ export default function WritePostPage() {
     try {
       await createPost({
         title: form.title.trim(),
-        channelId: form.channelId,
+        channelId: Number(form.channelId),
         content: form.content.trim(),
       });
       navigate('/all');
@@ -65,7 +66,7 @@ export default function WritePostPage() {
                 onChange={set('channelId')}
               >
                 <option value="">채널을 선택하세요</option>
-                {CHANNELS.map(ch => (
+                {channels.map(ch => (
                   <option key={ch.id} value={ch.id}>{ch.name}</option>
                 ))}
               </select>

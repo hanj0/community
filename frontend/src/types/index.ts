@@ -66,7 +66,7 @@ export interface ApiErrorDetail {
 
 export interface CreatePostRequest {
   title: string;
-  channelId: string;
+  channelId: number;
   content: string;
 }
 

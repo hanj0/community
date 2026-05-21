@@ -24,9 +24,9 @@ export interface PostSummary {
   createdAt: string;
   channelId: string;
   channelName: string;
-  likes: number;
+  likeCount: number;
   commentCount: number;
-  views: number;
+  viewCount: number;
   hasImage: boolean;
   isNotice: boolean;
   isPinned: boolean;
@@ -77,9 +77,9 @@ export interface PostDetail {
   channelId: string;
   channelName: string;
   authorName: string;
-  likes: number;
+  likeCount: number;
   commentCount: number;
-  views: number;
+  viewCount: number;
   createdAt: string;
   isPinned?: boolean;
 }

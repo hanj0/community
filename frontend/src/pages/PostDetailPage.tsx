@@ -42,7 +42,7 @@ export default function PostDetailPage() {
     setPostLoading(true);
     setPostError(null);
     fetchPostDetail(postId)
-      .then(p => { setPost(p); setLikeCount(p.likes); })
+      .then(p => { setPost(p); setLikeCount(p.likeCount); })
       .catch(e => setPostError(e.message))
       .finally(() => setPostLoading(false));
   }, [postId]);
@@ -158,7 +158,7 @@ export default function PostDetailPage() {
                 <div className="aav">{post.authorName.slice(0, 1)}</div>
                 <div>
                   <div className="anm">{post.authorName}</div>
-                  <div className="asb">{formatRelativeTime(post.createdAt)} · 조회 {post.views.toLocaleString()}</div>
+                  <div className="asb">{formatRelativeTime(post.createdAt)} · 조회 {post.viewCount.toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -205,7 +205,7 @@ export default function PostDetailPage() {
               : channelPosts.map(r => (
                 <div key={r.id} className="rci" onClick={() => navigate(`/posts/${r.id}`)}>
                   <div className="rct">{r.title}</div>
-                  <div className="rcm"><span>♥ {r.likes}</span><span>댓글 {r.commentCount}</span></div>
+                  <div className="rcm"><span>♥ {r.likeCount}</span><span>댓글 {r.commentCount}</span></div>
                 </div>
               ))
             }
@@ -222,7 +222,7 @@ export default function PostDetailPage() {
                   <div className="rct" style={{ flex: 1 }}>{r.title}</div>
                 </div>
                 <div className="rcm" style={{ paddingLeft: 22 }}>
-                  <span>♥ {r.likes}</span><span>댓글 {r.commentCount}</span>
+                  <span>♥ {r.likeCount}</span><span>댓글 {r.commentCount}</span>
                 </div>
               </div>
             ))}

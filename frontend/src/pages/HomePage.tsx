@@ -93,7 +93,7 @@ export default function HomePage() {
                   <span className="mi">{p.author}</span>
                   <span className="mi">·</span>
                   <span className="mi">{formatRelativeTime(p.createdAt)}</span>
-                  <span className="mi">♥ {p.likes}</span>
+                  <span className="mi">♥ {p.likeCount}</span>
                   <span className="mi">댓글 {p.commentCount}</span>
                 </div>
               </div>

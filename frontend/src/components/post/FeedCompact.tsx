@@ -19,7 +19,7 @@ export default function FeedCompact({ post, channelColor, onClick }: FeedCompact
       {post.hasImage && <span style={{ fontSize: 10, color: 'var(--t3)' }}>IMG</span>}
       <div className="fcm">
         <span style={{ fontSize: 11, color: 'var(--t3)' }}>{post.author}</span>
-        <span style={{ fontSize: 11, color: 'var(--red, #E24B4A)' }}>♥ {post.likes}</span>
+        <span style={{ fontSize: 11, color: 'var(--red, #E24B4A)' }}>♥ {post.likeCount}</span>
         <span style={{ fontSize: 11, color: 'var(--t3)' }}>댓글 {post.commentCount}</span>
         <span style={{ fontSize: 11, color: 'var(--t3)' }}>{formatRelativeTime(post.createdAt)}</span>
       </div>

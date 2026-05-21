@@ -24,9 +24,9 @@ export default function HotPostCard({ post, channelColor, rank, onClick }: HotPo
         <div className="hpm">
           <span className="mi">{post.author}</span>
           <span className="mi">{formatRelativeTime(post.createdAt)}</span>
-          <span className="mi">♥ {post.likes.toLocaleString()}</span>
+          <span className="mi">♥ {post.likeCount.toLocaleString()}</span>
           <span className="mi">댓글 {post.commentCount.toLocaleString()}</span>
-          <span className="mi">조회 {post.views.toLocaleString()}</span>
+          <span className="mi">조회 {post.viewCount.toLocaleString()}</span>
         </div>
       </div>
       {post.hasImage && <div className="ith" style={{ width: 50, height: 40 }}>IMG</div>}

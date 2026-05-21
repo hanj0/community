@@ -18,9 +18,9 @@ export default function PostRankItem({ post, channelColor, onClick }: PostRankIt
           </div>
           <div className="ptit">{post.title}</div>
           <div className="pmeta">
-            <span className="mi">♥ {post.likes.toLocaleString()}</span>
+            <span className="mi">♥ {post.likeCount.toLocaleString()}</span>
             <span className="mi">댓글 {post.commentCount.toLocaleString()}</span>
-            <span className="mi">조회 {post.views.toLocaleString()}</span>
+            <span className="mi">조회 {post.viewCount.toLocaleString()}</span>
           </div>
         </div>
         {post.hasImage && <div className="ith">IMG</div>}

@@ -23,9 +23,9 @@ export default function FeedCard({ post, channelColor, onClick }: FeedCardProps)
           <span className="fs">{post.author}</span>
           <span className="fs">·</span>
           <span className="fs">{formatRelativeTime(post.createdAt)}</span>
-          <span className="fs lk">♥ {post.likes}</span>
+          <span className="fs lk">♥ {post.likeCount}</span>
           <span className="fs">댓글 {post.commentCount}</span>
-          <span className="fs">조회 {post.views.toLocaleString()}</span>
+          <span className="fs">조회 {post.viewCount.toLocaleString()}</span>
         </div>
       </div>
       {post.hasImage && <div className="ith" style={{ width: 52, height: 42, fontSize: 9 }}>IMG</div>}

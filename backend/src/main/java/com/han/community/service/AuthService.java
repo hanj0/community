@@ -25,7 +25,7 @@ public class AuthService{
     private final AuthenticationManager authenticationManager;
 
     @Transactional
-    public AuthDto.Response signup(AuthDto.SignupRequest request) {
+    public User signup(AuthDto.SignupRequest request) {
 
         if(userRepository.existsByUsername(request.getUsername())) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
@@ -38,7 +38,7 @@ public class AuthService{
                 .role(Role.USER)
                 .build();
 
-        return AuthDto.Response.from(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     public Authentication login(AuthDto.LoginRequest request) {

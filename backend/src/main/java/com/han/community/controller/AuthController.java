@@ -1,6 +1,7 @@
 package com.han.community.controller;
 
 import com.han.community.dto.AuthDto;
+import com.han.community.entity.Role;
 import com.han.community.entity.User;
 import com.han.community.global.response.SuccessResponse;
 import com.han.community.service.AuthService;
@@ -13,10 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 // 회원가입, 로그인, 로그아웃
 
@@ -32,9 +36,32 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<SuccessResponse<AuthDto.Response>> signup(@RequestBody AuthDto.SignupRequest request) {
+    public ResponseEntity<SuccessResponse<AuthDto.Response>> signup(
+            @RequestBody AuthDto.SignupRequest request,
+            HttpServletRequest httpRequest) {
 
-        AuthDto.Response response = authService.signup(request);
+        User user = authService.signup(request);
+
+        UsernamePasswordAuthenticationToken authToken =
+                new UsernamePasswordAuthenticationToken(
+                        user,
+                        null,
+                        user.getAuthorities()
+                );
+
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        HttpSession oldSession = httpRequest.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+        HttpSession newSession = httpRequest.getSession(true);
+        newSession.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                SecurityContextHolder.getContext()
+        );
+
+        AuthDto.Response response = AuthDto.Response.from(user);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(SuccessResponse.of(response));

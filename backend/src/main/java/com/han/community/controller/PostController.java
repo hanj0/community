@@ -2,8 +2,11 @@ package com.han.community.controller;
 
 import com.han.community.dto.PostDto;
 import com.han.community.entity.User;
+import com.han.community.global.response.PageResponse;
+import com.han.community.global.response.SuccessResponse;
 import com.han.community.service.PostService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -30,7 +33,7 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<PostDto.Response> createPost(
+    public ResponseEntity<SuccessResponse<PostDto.Response>> createPost(
             @RequestBody PostDto.CreateRequest requestDto,
             @AuthenticationPrincipal User user) {
 
@@ -42,7 +45,9 @@ public class PostController {
                         user.getEmail()
         );
         PostDto.Response response = postService.create(requestDto, user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(SuccessResponse.of(response));
     }
 
     @PatchMapping("/{id}")
@@ -59,11 +64,24 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<PostDto.Response>> getPostPage(
-            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
+    public ResponseEntity<PageResponse<PostDto.Response>> getPostPage(
+            @PageableDefault(size = 20) Pageable pageable,
+            @RequestParam(defaultValue = "latest") String sortBy) {
 
-        Page<PostDto.Response> page = postService.getPostPage(pageable);
-        return ResponseEntity.ok(page);
+        Sort sort = switch(sortBy) {
+            case "popular" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            default -> Sort.by(Sort.Direction.DESC, "createdAt");
+        };
+
+        Pageable finalPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), 100),
+                sort
+        );
+
+        Page<PostDto.Response> page = postService.getPostPage(finalPageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(PageResponse.of(page));
     }
 }

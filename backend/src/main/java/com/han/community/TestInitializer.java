@@ -34,7 +34,7 @@ public class TestInitializer {
             userRepository.save(
                     new User(
                             "string",
-                            "string",
+                            "string@string",
                             passwordEncoder.encode("string"),
                             Role.USER
                     )

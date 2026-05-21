@@ -38,20 +38,38 @@ public class PostDto {
         private Long id;
         private String title;
         private String content;
+        private int viewCount;
+        private int likeCount;
+        private int dislikeCount;
+        private int commentCount;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
 
         public Response() {}
 
-        public Response(Long id, String title, String content) {
+        public Response(Long id, String title, String content, int viewCount, int likeCount, int dislikeCount, int commentCount, LocalDateTime createAt, LocalDateTime updatedAt) {
             this.id = id;
             this.title = title;
             this.content = content;
+            this.viewCount = viewCount;
+            this.likeCount = likeCount;
+            this.dislikeCount = dislikeCount;
+            this.commentCount = commentCount;
+            this.createdAt = createAt;
+            this.updatedAt = updatedAt;
         }
 
         public static Response from(Post post) {
             return new Response(
-                post.getId(),
-                post.getTitle(),
-                post.getContent()
+                    post.getId(),
+                    post.getTitle(),
+                    post.getContent(),
+                    post.getViewCount(),
+                    post.getLikeCount(),
+                    post.getDislikeCount(),
+                    post.getCommentCount(),
+                    post.getCreatedAt(),
+                    post.getUpdatedAt()
             );
         }
     }

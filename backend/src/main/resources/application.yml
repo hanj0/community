@@ -1,13 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:community
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:postgresql://localhost:5432/communitydb
+    driver-class-name: org.postgresql.Driver
+    username: comm
+    password: comm
   jpa:
     hibernate:
       ddl-auto: create
@@ -15,4 +11,4 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect

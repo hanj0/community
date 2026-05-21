@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -38,8 +39,13 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
 
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)))
+
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/h2-console/**").permitAll()
+                        .requestMatchers("/api/auth/me").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET).permitAll()
                         .anyRequest().authenticated()
@@ -47,7 +53,7 @@ public class SecurityConfig {
                 )
 
                 .logout(logout -> logout
-                        .logoutUrl("api/auth/logout")
+                        .logoutUrl("/api/auth/logout")
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
                         .logoutSuccessHandler(((request, response, authentication) -> {

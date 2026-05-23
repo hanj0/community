@@ -45,9 +45,28 @@ export async function fetchHotPosts(params: {
   return res.json() as Promise<PagedResponse<PostSummary>>;
 }
 
+interface RawPostDetail {
+  id: number;
+  title: string;
+  content: string;
+  userInfo: { id: number; username: string } | null;
+  channelInfo: { id: number; name: string; description: string } | null;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  createdAt: string;
+  isPinned?: boolean;
+}
+
 export async function fetchPostDetail(id: number): Promise<PostDetail> {
   const res = await fetch(`/api/posts/${id}`, { credentials: 'include' });
-  return handleResponse<PostDetail>(res);
+  const raw = await handleResponse<RawPostDetail>(res);
+  return {
+    ...raw,
+    authorName: raw.userInfo?.username ?? '',
+    channelId: String(raw.channelInfo?.id ?? ''),
+    channelName: raw.channelInfo?.name ?? '',
+  };
 }
 
 export async function fetchComments(

@@ -14,7 +14,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    getMe().then(setUser).catch(() => {});
+    getMe().then(setUser);
   }, []);
 
   function logout() {

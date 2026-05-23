@@ -37,9 +37,10 @@ export async function logout(): Promise<void> {
   });
 }
 
-export async function getMe(): Promise<User> {
+export async function getMe(): Promise<User | null> {
   const res = await fetch(`${BASE}/me`, {
     credentials: 'include',
   });
+  if (res.status === 401) return null;
   return handleResponse<User>(res);
 }

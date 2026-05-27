@@ -1,6 +1,5 @@
 package com.han.community.service;
 
-import com.han.community.entity.User;
 import com.han.community.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

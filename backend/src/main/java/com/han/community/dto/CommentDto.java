@@ -3,6 +3,8 @@ package com.han.community.dto;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 public class CommentDto {
 
     @Getter
@@ -25,5 +27,14 @@ public class CommentDto {
 
         private Long id;
         private String content;
+        private Long parentId;
+        private UserDto.Response userInfo;
+        private int likeCount;
+        private int dislikeCount;
+        private int replyCount;
+        private boolean reactionStatus;
+
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
     }
 }

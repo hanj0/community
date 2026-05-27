@@ -1,9 +1,12 @@
 package com.han.community.service;
 
 import com.han.community.dto.CommentDto;
+import com.han.community.dto.UserDto;
 import com.han.community.entity.Comment;
 import com.han.community.entity.Post;
 import com.han.community.entity.User;
+import com.han.community.global.exception.BusinessException;
+import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
@@ -24,10 +27,34 @@ public class CommentService {
     @Transactional
     public Page<CommentDto.Response> getComments(Long postId, Pageable pageable) {
 
-        return commentRepository.findAll(pageable).map(
+        return commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable).map(
                 c -> CommentDto.Response.builder()
+                        .userInfo(UserDto.Response.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
+                        .replyCount(c.getReplyCount())
+                        .reactionStatus(false)
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build()
+        );
+    }
+
+    @Transactional
+    public Page<CommentDto.Response> getReplies(Long commentId, Pageable pageable) {
+
+        return commentRepository.findByParentCommentId(commentId, pageable).map(
+                c -> CommentDto.Response.builder()
+                        .userInfo(UserDto.Response.from(c.getUser()))
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .parentId(c.getParentComment().getId())
+                        .likeCount(c.getLikeCount())
+                        .dislikeCount(c.getDislikeCount())
+                        .replyCount(c.getReplyCount())
+                        .reactionStatus(false)
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
                         .build()
         );
     }
@@ -37,7 +64,7 @@ public class CommentService {
 
         User user = userRepository.getReferenceById(userId);
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         Comment parentComment = getParentComment(postId, requestDto.getParentCommentId());
 
@@ -48,19 +75,32 @@ public class CommentService {
                 .content(requestDto.getContent())
                 .build();
 
-        Comment save = commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
 
         return CommentDto.Response.builder()
-                .id(save.getId())
-                .content(save.getContent())
+                .id(savedComment.getId())
+                .content(savedComment.getContent())
+                .parentId(savedComment.getParentComment() != null ? savedComment.getParentComment().getId() : null)
+                .userInfo(UserDto.Response.from(user))
+                .reactionStatus(false)
+                .replyCount(0)
+                .likeCount(0)
+                .dislikeCount(0)
+                .createdAt(savedComment.getCreatedAt())
+                .updatedAt(savedComment.getUpdatedAt())
                 .build();
     }
 
     @Transactional
-    public CommentDto.Response update(CommentDto.UpdateRequest dto) {
+    public CommentDto.Response update(Long commentId, CommentDto.UpdateRequest requestDto, Long userId) {
 
-        Comment comment = commentRepository.findById(dto.getId()).orElseThrow();
-        comment.update(dto.getContent());
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if(!userId.equals(comment.getUser().getId()))
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+
+        comment.update(requestDto.getContent());
 
         return CommentDto.Response.builder()
                 .id(comment.getId())
@@ -77,11 +117,11 @@ public class CommentService {
 
         if(parentCommentId == null) return null;
 
-        Comment parent = commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new IllegalArgumentException("부모 댓글 없음"));
+        Comment parentComment = commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
         // 같은 게시글 검증
 
-        return parent;
+        return parentComment;
     }
 }

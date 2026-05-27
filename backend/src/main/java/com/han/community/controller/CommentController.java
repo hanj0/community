@@ -26,10 +26,22 @@ public class CommentController {
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<PageResponse<CommentDto.Response>> getComments(
             @PathVariable Long postId,
-            @PageableDefault(sort = "create_at") Pageable pageable
+            @PageableDefault(sort = "createdAt") Pageable pageable
     ) {
 
         Page<CommentDto.Response> response = commentService.getComments(postId, pageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(PageResponse.of(response));
+    }
+
+    @GetMapping("/comments/{commentId}/replies")
+    public ResponseEntity<PageResponse<CommentDto.Response>> getReplies(
+            @PathVariable Long commentId,
+            @PageableDefault(sort = "createdAt") Pageable pageable
+    ) {
+
+        Page<CommentDto.Response> response = commentService.getReplies(commentId, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));
@@ -47,10 +59,13 @@ public class CommentController {
                 .body(SuccessResponse.of(response));
     }
 
-    @PutMapping("/comments/{id}")
-    public ResponseEntity<SuccessResponse<CommentDto.Response>> update(@RequestBody CommentDto.UpdateRequest dto) {
+    @PatchMapping("/comments/{id}")
+    public ResponseEntity<SuccessResponse<CommentDto.Response>> update(
+            @PathVariable Long id,
+            @RequestBody CommentDto.UpdateRequest requestDto,
+            @AuthenticationPrincipal User user) {
 
-        CommentDto.Response response = commentService.update(dto);
+        CommentDto.Response response = commentService.update(id, requestDto, user.getId());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.of(response));

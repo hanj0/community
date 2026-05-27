@@ -1,10 +1,7 @@
 package com.han.community.dto;
 
-import com.han.community.entity.Role;
 import com.han.community.entity.User;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 
 public class AuthDto {

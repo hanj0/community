@@ -26,10 +26,12 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostDto.Response> getPostDetail(@PathVariable Long id) {
+    public ResponseEntity<SuccessResponse<PostDto.DetailResponse>> getPostDetail(@PathVariable Long id) {
 
-        PostDto.Response response = postService.getDetail(id);
-        return ResponseEntity.ok(response);
+        PostDto.DetailResponse response = postService.getDetail(id);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.of(response));
     }
 
     @PostMapping
@@ -37,13 +39,6 @@ public class PostController {
             @RequestBody PostDto.CreateRequest requestDto,
             @AuthenticationPrincipal User user) {
 
-        System.out.println(
-                user.getUsername() + user.getPassword() +
-                        user.getAuthorities() +
-                        user.getCreatedAt() +
-                        user.getId() +
-                        user.getEmail()
-        );
         PostDto.Response response = postService.create(requestDto, user.getId());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -51,16 +46,24 @@ public class PostController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<PostDto.Response> updatePost(@RequestBody PostDto.UpdateRequest req) {
+    public ResponseEntity<SuccessResponse<PostDto.Response>> updatePost(
+            @PathVariable Long id,
+            @RequestBody PostDto.UpdateRequest requestDto,
+            @AuthenticationPrincipal User user) {
 
-        PostDto.Response response = postService.update(req);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        PostDto.Response response = postService.update(id, requestDto, user.getId());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.of(response));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
+
         postService.delete(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     @GetMapping
@@ -69,7 +72,9 @@ public class PostController {
             @RequestParam(defaultValue = "latest") String sortBy) {
 
         Sort sort = switch(sortBy) {
-            case "popular" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "like" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "view" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            case "comment" -> Sort.by(Sort.Direction.DESC, "commentCount");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
 
@@ -79,9 +84,20 @@ public class PostController {
                 sort
         );
 
-        Page<PostDto.Response> page = postService.getPostPage(finalPageable);
+        Page<PostDto.Response> response = postService.getPostPage(finalPageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(PageResponse.of(page));
+                .body(PageResponse.of(response));
+    }
+
+    @GetMapping("/hot")
+    public ResponseEntity<PageResponse<PostDto.Response>> getHotPostPage(
+            @RequestParam(defaultValue = "24h") String period,
+            @PageableDefault(size = 20) Pageable pageable) {
+
+        Page<PostDto.Response> response = postService.getHotPostPage(period, pageable);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(PageResponse.of(response));
     }
 }

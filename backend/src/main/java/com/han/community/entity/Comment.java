@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @Builder
@@ -28,7 +26,7 @@ public class Comment extends BaseSoftDeleteEntity {
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id")
+    @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
     @Lob
@@ -36,7 +34,7 @@ public class Comment extends BaseSoftDeleteEntity {
 
     private int likeCount;
     private int dislikeCount;
-
+    private int replyCount;
 
     public void update(String content) {
         this.content = content;

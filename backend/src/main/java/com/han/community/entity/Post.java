@@ -1,9 +1,8 @@
 package com.han.community.entity;
 
+import com.han.community.dto.PostDto;
 import jakarta.persistence.*;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -32,9 +31,9 @@ public class Post extends BaseSoftDeleteEntity {
 
     protected Post() {}
 
-    public void update(String title, String content) {
-        this.title = title;
-        this.content = content;
+    public void update(PostDto.UpdateRequest requestDto) {
+        this.title = requestDto.getTitle();
+        this.content = requestDto.getContent();
     }
 
 

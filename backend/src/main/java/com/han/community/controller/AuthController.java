@@ -1,28 +1,21 @@
 package com.han.community.controller;
 
 import com.han.community.dto.AuthDto;
-import com.han.community.entity.Role;
 import com.han.community.entity.User;
 import com.han.community.global.response.SuccessResponse;
 import com.han.community.service.AuthService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
-// 회원가입, 로그인, 로그아웃
 
 @RestController
 @RequestMapping("/api/auth")
@@ -88,7 +81,7 @@ public class AuthController {
                 context
         );
 
-        User user = (User)((UsernamePasswordAuthenticationToken)auth).getPrincipal();
+        User user = (User)auth.getPrincipal();
 
         return ResponseEntity
                 .status(HttpStatus.OK)

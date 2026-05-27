@@ -35,12 +35,13 @@ export interface PostSummary {
 
 export interface CommentData {
   id: number;
-  author: string;
+  userInfo: { id: number; username: string } | null;
   content: string;
   createdAt: string;
   likes: number;
   dislikes: number;
-  replies: CommentData[];
+  reactionStatus: boolean;
+  replyCount: number;
 }
 
 export interface TrendingItem {
@@ -76,6 +77,7 @@ export interface PostDetail {
   content: string;
   channelId: string;
   channelName: string;
+  authorId: number;
   authorName: string;
   likeCount: number;
   commentCount: number;

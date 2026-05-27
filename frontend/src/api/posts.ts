@@ -63,10 +63,31 @@ export async function fetchPostDetail(id: number): Promise<PostDetail> {
   const raw = await handleResponse<RawPostDetail>(res);
   return {
     ...raw,
+    authorId: raw.userInfo?.id ?? 0,
     authorName: raw.userInfo?.username ?? '',
     channelId: String(raw.channelInfo?.id ?? ''),
     channelName: raw.channelInfo?.name ?? '',
   };
+}
+
+export async function updatePost(id: number, data: { title: string; content: string }): Promise<void> {
+  const res = await fetch(`/api/posts/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  await handleResponse<unknown>(res);
+}
+
+export async function updateComment(id: number, content: string): Promise<void> {
+  const res = await fetch(`/api/comments/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ content }),
+  });
+  await handleResponse<unknown>(res);
 }
 
 export async function fetchComments(
@@ -89,6 +110,16 @@ export async function createComment(postId: number, content: string): Promise<Co
     body: JSON.stringify({ content }),
   });
   return handleResponse<CommentData>(res);
+}
+
+export async function fetchReplies(commentId: number): Promise<CommentData[]> {
+  const res = await fetch(
+    buildUrl(`/api/comments/${commentId}/replies`, { size: 100 }),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('답글을 불러올 수 없습니다.');
+  const body = await res.json();
+  return body.data as CommentData[];
 }
 
 export async function createPost(data: CreatePostRequest): Promise<PostDetail> {

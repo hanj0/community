@@ -8,6 +8,7 @@ const PALETTE = [
 ];
 
 export function getAvatarStyle(author: string): { av: string; ab: string; ac: string } {
+  if (!author) return { av: '?', ab: PALETTE[0].ab, ac: PALETTE[0].ac };
   const hash = author.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
   const { ab, ac } = PALETTE[hash % PALETTE.length];
   return { av: author.charAt(0), ab, ac };

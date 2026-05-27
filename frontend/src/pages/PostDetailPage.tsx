@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, PostSummary, CommentData } from '../types';
-import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts } from '../api/posts';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, fetchReplies, updatePost } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
+import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
 import { rankColor } from '../utils/rank';
 import ChTag from '../components/common/ChTag';
@@ -16,6 +17,7 @@ export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const postId = Number(id);
   const channels = useChannels();
+  const { user } = useAuth();
 
   const [post, setPost] = useState<PostDetail | null>(null);
   const [postLoading, setPostLoading] = useState(true);
@@ -24,6 +26,11 @@ export default function PostDetailPage() {
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [editSaving, setEditSaving] = useState(false);
 
   const [comments, setComments] = useState<CommentData[]>([]);
   const [commentPage, setCommentPage] = useState(0);
@@ -105,7 +112,30 @@ export default function PostDetailPage() {
     setLikeCount(n => liked ? n - 1 : n + 1);
   };
 
-  const totalComments = comments.reduce((a, c) => a + 1 + c.replies.length, 0);
+  const handleStartEditPost = () => {
+    if (!post) return;
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setIsEditingPost(true);
+  };
+
+  const handleCancelEditPost = () => {
+    setIsEditingPost(false);
+  };
+
+  const handleSavePost = async () => {
+    if (!post || editSaving) return;
+    setEditSaving(true);
+    try {
+      await updatePost(post.id, { title: editTitle, content: editContent });
+      setPost(p => p ? { ...p, title: editTitle, content: editContent } : p);
+      setIsEditingPost(false);
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const totalComments = comments.reduce((a, c) => a + 1 + c.replyCount, 0);
 
   if (postLoading) {
     return (
@@ -132,6 +162,7 @@ export default function PostDetailPage() {
   }
 
   const channelColor = colorMap[post.channelId] ?? '#888';
+  const isPostAuthor = user?.id === post.authorId;
 
   return (
     <div className="dtlyt">
@@ -152,7 +183,14 @@ export default function PostDetailPage() {
               <ChTag channel={post.channelName} channelColor={channelColor} />
               {post.isPinned && <span className="bpin">고정</span>}
             </div>
-            <div className="dttl">{post.title}</div>
+            {isEditingPost
+              ? <input
+                  className="edt-title"
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                />
+              : <div className="dttl">{post.title}</div>
+            }
             <div className="dtar">
               <div className="dta">
                 <div className="aav">{post.authorName.slice(0, 1)}</div>
@@ -161,12 +199,37 @@ export default function PostDetailPage() {
                   <div className="asb">{formatRelativeTime(post.createdAt)} · 조회 {post.viewCount.toLocaleString()}</div>
                 </div>
               </div>
+              {isPostAuthor && !isEditingPost && (
+                <div className="rac">
+                  <button className="ac" onClick={handleStartEditPost}>수정</button>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="dtbd">
-            {post.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
-          </div>
+          {isEditingPost
+            ? (
+              <div className="dtbd">
+                <textarea
+                  className="edt-content"
+                  value={editContent}
+                  onChange={e => setEditContent(e.target.value)}
+                  rows={12}
+                />
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 8 }}>
+                  <button className="ac" onClick={handleCancelEditPost}>취소</button>
+                  <button className="ac" style={{ color: 'var(--primary)' }} onClick={handleSavePost} disabled={editSaving}>
+                    {editSaving ? '저장 중...' : '저장'}
+                  </button>
+                </div>
+              </div>
+            )
+            : (
+              <div className="dtbd">
+                {post.content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+              </div>
+            )
+          }
 
           <div className="dtac">
             <div className="vg">

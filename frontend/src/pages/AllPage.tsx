@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PostSummary, PageMeta, SortType, ViewType } from '../types';
 import { fetchPosts } from '../api/posts';
@@ -23,6 +23,23 @@ export default function AllPage() {
   const [meta, setMeta] = useState<PageMeta>({ page: 0, size: PAGE_SIZE, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const [showTabArrow, setShowTabArrow] = useState(true);
+
+  const checkTabScroll = useCallback(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    setShowTabArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (!el) return;
+    checkTabScroll();
+    el.addEventListener('scroll', checkTabScroll);
+    return () => el.removeEventListener('scroll', checkTabScroll);
+  }, [checkTabScroll, channels]);
 
   const colorMap = useMemo(
     () => Object.fromEntries(channels.map(c => [c.id, c.color])),
@@ -108,7 +125,8 @@ export default function AllPage() {
           </div>
         </div>
 
-        <div className="chtabs">
+        <div className="chtabs-wrap">
+        <div className="chtabs" ref={tabsRef}>
           {allChannelNav.map(ch => (
             <button
               key={ch.id}
@@ -118,6 +136,8 @@ export default function AllPage() {
               {ch.name}
             </button>
           ))}
+        </div>
+          {showTabArrow && <div className="chtabs-arrow">›</div>}
         </div>
 
         {search && (

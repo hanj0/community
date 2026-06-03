@@ -104,7 +104,9 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .sbox{display:flex;align-items:center;gap:6px;border:.5px solid var(--b2);border-radius:8px;background:var(--bg);padding:5px 10px}
 .sinp{font-size:12px;border:none;outline:none;background:transparent;color:var(--t1);width:160px;font-family:inherit}
 .sinp::placeholder{color:var(--t3)}
-.chtabs{display:flex;border-bottom:.5px solid var(--b);margin-bottom:10px;overflow-x:auto}
+.chtabs-wrap{position:relative;margin-bottom:10px}
+.chtabs-arrow{position:absolute;top:0;right:0;height:100%;display:flex;align-items:center;padding:0 6px 2px;font-size:18px;color:var(--t2);background:linear-gradient(to right,transparent 0%,var(--bg) 40%);pointer-events:none;user-select:none}
+.chtabs{display:flex;border-bottom:.5px solid var(--b);overflow-x:auto}
 .chtabs::-webkit-scrollbar{display:none}
 .chnt{font-size:12px;padding:8px 14px;border-bottom:2px solid transparent;color:var(--t3);cursor:pointer;white-space:nowrap;background:none;border-left:none;border-right:none;border-top:none;transition:color .15s}
 .chnt:hover{color:var(--t2)}.chnt.active{color:var(--t1);font-weight:500;border-bottom-color:var(--t1)}

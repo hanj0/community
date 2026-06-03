@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import './styles/community.css';
 import GNB from './components/layout/GNB';
 import HomePage from './pages/HomePage';
@@ -16,12 +16,36 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function LoginPromptModal() {
+  const { dismissLoginPrompt } = useAuth();
+  const navigate = useNavigate();
+
+  const handleConfirm = () => {
+    dismissLoginPrompt();
+    navigate('/login');
+  };
+
+  return (
+    <div className="modal-overlay" onClick={dismissLoginPrompt}>
+      <div className="modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-title">로그인이 필요합니다</div>
+        <div className="modal-body">로그인이 필요한 기능입니다.<br />로그인 페이지로 이동하시겠습니까?</div>
+        <div className="modal-actions">
+          <button className="modal-btn" onClick={dismissLoginPrompt}>취소</button>
+          <button className="modal-btn primary" onClick={handleConfirm}>로그인하기</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
-  const { user } = useAuth();
+  const { user, showLoginPrompt } = useAuth();
 
   return (
     <>
       <GNB />
+      {showLoginPrompt && <LoginPromptModal />}
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/hot" element={<HotPage />} />

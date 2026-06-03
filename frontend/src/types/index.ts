@@ -44,11 +44,6 @@ export interface CommentData {
   replyCount: number;
 }
 
-export interface TrendingItem {
-  w: string;
-  d: string;
-}
-
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
 export type PeriodType = '24h' | '7d' | '30d';

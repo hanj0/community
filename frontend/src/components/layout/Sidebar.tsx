@@ -1,9 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useChannels } from '../../hooks/useChannels';
-import { TRENDING } from '../../constants/data';
 
-export default function Sidebar() {
+interface SidebarProps {
+  selectedChannelId?: string;
+  onChannelClick?: (channelId: string) => void;
+}
+
+export default function Sidebar({ selectedChannelId, onChannelClick }: SidebarProps = {}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const channels = useChannels();
@@ -45,7 +49,11 @@ export default function Sidebar() {
         <div className="chd"><span className="ct">채널</span></div>
         <div className="sbb">
           {channels.map(ch => (
-            <div className="chitem" key={ch.id}>
+            <div
+              className={'chitem' + (onChannelClick && selectedChannelId === ch.id ? ' active' : '') + (onChannelClick ? ' clickable' : '')}
+              key={ch.id}
+              onClick={() => onChannelClick?.(ch.id)}
+            >
               <div className="chdot" style={{ background: ch.color }} />
               <span className="chnm">{ch.name}</span>
               {ch.postCount !== undefined && (
@@ -56,19 +64,6 @@ export default function Sidebar() {
           {channels.length === 0 && (
             <div style={{ fontSize: 12, color: 'var(--t3)', padding: '8px 0' }}>채널 로딩 중...</div>
           )}
-        </div>
-      </div>
-
-      <div className="card">
-        <div className="chd"><span className="ct">실시간 키워드</span></div>
-        <div className="sbb">
-          {TRENDING.map((t, i) => (
-            <div className="trow" key={i}>
-              <span className="tnum">{i + 1}</span>
-              <span className="twrd">{t.w}</span>
-              <span className="tdlt">{t.d}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>

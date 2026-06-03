@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CommentData } from '../../types';
-import { fetchReplies, updateComment } from '../../api/posts';
+import { fetchReplies, updateComment, createComment } from '../../api/posts';
 import { getAvatarStyle } from '../../utils/avatar';
 import { formatRelativeTime } from '../../utils/time';
 import { useAuth } from '../../context/AuthContext';
@@ -8,10 +8,11 @@ import CommentInput from './CommentInput';
 
 interface CommentItemProps {
   comment: CommentData;
+  postId: number;
   isReply?: boolean;
 }
 
-export default function CommentItem({ comment, isReply = false }: CommentItemProps) {
+export default function CommentItem({ comment, postId, isReply = false }: CommentItemProps) {
   const { user } = useAuth();
   const [repliesOpen, setRepliesOpen] = useState(false);
   const [replies, setReplies] = useState<CommentData[]>([]);
@@ -141,13 +142,19 @@ export default function CommentItem({ comment, isReply = false }: CommentItemPro
         )}
       </div>
       {!isReply && repliesOpen && replies.map(r => (
-        <CommentItem key={r.id} comment={r} isReply={true} />
+        <CommentItem key={r.id} comment={r} postId={postId} isReply={true} />
       ))}
       {showInput && !isReply && (
         <div style={{ paddingLeft: 48, background: 'var(--bg2)', borderBottom: '.5px solid var(--b)' }}>
           <CommentInput
             placeholder={`@${author}에게 답글 작성...`}
-            onSubmit={() => setShowInput(false)}
+            onSubmit={async (text) => {
+              const newReply = await createComment(postId, text, comment.id);
+              setReplies(prev => [...prev, newReply]);
+              setRepliesLoaded(true);
+              setRepliesOpen(true);
+              setShowInput(false);
+            }}
           />
         </div>
       )}

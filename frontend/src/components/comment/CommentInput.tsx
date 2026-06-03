@@ -3,11 +3,12 @@ import { useState } from 'react';
 interface CommentInputProps {
   placeholder?: string;
   onSubmit: (text: string) => void;
+  onFocus?: () => void;
 }
 
 const MAX_LENGTH = 500;
 
-export default function CommentInput({ placeholder = '댓글을 입력하세요', onSubmit }: CommentInputProps) {
+export default function CommentInput({ placeholder = '댓글을 입력하세요', onSubmit, onFocus }: CommentInputProps) {
   const [text, setText] = useState('');
 
   const handleSubmit = () => {
@@ -27,6 +28,7 @@ export default function CommentInput({ placeholder = '댓글을 입력하세요'
             placeholder={placeholder}
             value={text}
             onChange={e => setText(e.target.value.slice(0, MAX_LENGTH))}
+            onFocus={onFocus}
             rows={3}
           />
           <div className="cibt">

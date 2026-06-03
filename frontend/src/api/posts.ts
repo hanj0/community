@@ -3,6 +3,9 @@ import type { CreatePostRequest, PostDetail, PagedResponse, PostSummary, Comment
 async function handleResponse<T>(res: Response): Promise<T> {
   const body = await res.json().catch(() => null);
   if (!res.ok) {
+    if (res.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    }
     throw new Error(body?.error?.message ?? '서버 오류가 발생했습니다.');
   }
   return body.data as T;
@@ -102,12 +105,12 @@ export async function fetchComments(
   return res.json() as Promise<PagedResponse<CommentData>>;
 }
 
-export async function createComment(postId: number, content: string): Promise<CommentData> {
+export async function createComment(postId: number, content: string, parentId?: number): Promise<CommentData> {
   const res = await fetch(`/api/posts/${postId}/comments`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(parentId !== undefined ? { content, parentId } : { content }),
   });
   return handleResponse<CommentData>(res);
 }

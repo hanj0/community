@@ -6,23 +6,36 @@ interface AuthContextValue {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
+  showLoginPrompt: boolean;
+  dismissLoginPrompt: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     getMe().then(setUser);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setShowLoginPrompt(true);
+    window.addEventListener('auth:unauthorized', handler);
+    return () => window.removeEventListener('auth:unauthorized', handler);
   }, []);
 
   function logout() {
     apiLogout().finally(() => setUser(null));
   }
 
+  function dismissLoginPrompt() {
+    setShowLoginPrompt(false);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, setUser, logout }}>
+    <AuthContext.Provider value={{ user, setUser, logout, showLoginPrompt, dismissLoginPrompt }}>
       {children}
     </AuthContext.Provider>
   );

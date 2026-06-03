@@ -165,7 +165,7 @@ export default function AllPage() {
 
         <Pagination current={currentPage} totalPages={meta.totalPages} onChange={handlePageChange} />
       </div>
-      <Sidebar />
+      <Sidebar selectedChannelId={channelId} onChannelClick={handleChannelChange} />
     </div>
   );
 }

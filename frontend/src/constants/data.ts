@@ -1,4 +1,4 @@
-import type { ChannelData, TrendingItem } from '../types';
+import type { ChannelData } from '../types';
 
 export const COLORS = {
   red:    '#E24B4A',
@@ -21,12 +21,4 @@ export const NOTICES_TEXT: string[] = [
   '커뮤니티 운영 정책 안내 (2025.04 개정)',
   '어뷰징 신고 기준 및 포인트 차감 안내',
   '채널 개설 신청 방법 변경 안내',
-];
-
-export const TRENDING: TrendingItem[] = [
-  { w: '번아웃',       d: '↑2'  },
-  { w: '연봉협상',     d: '신규' },
-  { w: '타입스크립트', d: '↑1'  },
-  { w: 'Claude API',  d: '↑5'  },
-  { w: '면접 후기',   d: '↓1'  },
 ];

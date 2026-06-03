@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, PostSummary, CommentData } from '../types';
-import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, fetchReplies, updatePost } from '../api/posts';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
 import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
@@ -101,7 +101,7 @@ export default function PostDetailPage() {
   const handleAddComment = async (text: string) => {
     try {
       const newComment = await createComment(postId, text);
-      setComments(prev => [newComment, ...prev]);
+      setComments(prev => [...prev, newComment]);
     } catch {
       // ignore
     }
@@ -252,10 +252,13 @@ export default function PostDetailPage() {
             <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--t1)' }}>댓글</span>
             <span style={{ fontSize: 12, color: 'var(--t3)' }}>{totalComments}개</span>
           </div>
-          {comments.map(c => <CommentItem key={c.id} comment={c} />)}
+          {comments.map(c => <CommentItem key={c.id} comment={c} postId={postId} />)}
           {commentLoading && <div className="lrow"><div className="spin" /><span>불러오는 중...</span></div>}
           {commentHasMore && !commentLoading && <div ref={sentinelRef} style={{ height: 1 }} />}
-          <CommentInput onSubmit={handleAddComment} />
+          <CommentInput
+            onSubmit={handleAddComment}
+            onFocus={user ? undefined : () => window.dispatchEvent(new CustomEvent('auth:unauthorized'))}
+          />
         </div>
       </div>
 

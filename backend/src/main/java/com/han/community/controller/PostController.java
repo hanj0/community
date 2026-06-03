@@ -69,22 +69,11 @@ public class PostController {
     @GetMapping
     public ResponseEntity<PageResponse<PostDto.Response>> getPostPage(
             @PageableDefault(size = 20) Pageable pageable,
-            @RequestParam(defaultValue = "latest") String sortBy) {
+            @RequestParam(defaultValue = "latest") String sort,
+            @RequestParam(required = false) Long channelId,
+            @RequestParam(required = false, defaultValue = "") String search) {
 
-        Sort sort = switch(sortBy) {
-            case "like" -> Sort.by(Sort.Direction.DESC, "likeCount");
-            case "view" -> Sort.by(Sort.Direction.DESC, "viewCount");
-            case "comment" -> Sort.by(Sort.Direction.DESC, "commentCount");
-            default -> Sort.by(Sort.Direction.DESC, "createdAt");
-        };
-
-        Pageable finalPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                Math.min(pageable.getPageSize(), 100),
-                sort
-        );
-
-        Page<PostDto.Response> response = postService.getPostPage(finalPageable);
+        Page<PostDto.Response> response = postService.getPostPage(channelId, search, sort, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));

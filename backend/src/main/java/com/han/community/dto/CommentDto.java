@@ -10,14 +10,13 @@ public class CommentDto {
     @Getter
     public static class CreateRequest {
 
-        private Long parentCommentId;
+        private Long parentId;
         private String content;
     }
 
     @Getter
     public static class UpdateRequest {
 
-        private Long id;
         private String content;
     }
 

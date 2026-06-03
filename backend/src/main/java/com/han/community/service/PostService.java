@@ -13,9 +13,12 @@ import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +31,7 @@ public class PostService {
     private final UserRepository userRepository;
 
     private static final int HOT_THRESHOLD = 20;
+    private static final int PAGE_SIZE_LIMIT = 100;
 
     @Transactional
     public PostDto.Response create(PostDto.CreateRequest requestDto, Long userId) {
@@ -51,7 +55,8 @@ public class PostService {
     @Transactional
     public PostDto.DetailResponse getDetail(Long id) {
 
-        Post post = postRepository.findByIdWithDetails(id).orElseThrow();
+        Post post = postRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         return PostDto.DetailResponse.builder()
                 .id(post.getId())
@@ -92,9 +97,29 @@ public class PostService {
     }
 
     @Transactional
-    public Page<PostDto.Response> getPostPage(Pageable pageable) {
+    public Page<PostDto.Response> getPostPage(Long channelId, String search, String sort, Pageable pageable) {
 
-        Page<Post> page = postRepository.findAll(pageable);
+        Sort pageSort = switch(sort) {
+            case "latest" -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "likes" -> Sort.by(Sort.Direction.DESC, "likeCount");
+            case "views" -> Sort.by(Sort.Direction.DESC, "viewCount");
+            case "comments" -> Sort.by(Sort.Direction.DESC, "commentCount");
+            default -> throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        };
+
+        Pageable finalPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), PAGE_SIZE_LIMIT),
+                pageSort
+        );
+
+        Page<Post> page;
+
+        if(channelId != null && StringUtils.hasText(search)) page = postRepository.findAllByChannelIdAndSearch(channelId, search, finalPageable);
+        else if(channelId != null) page = postRepository.findAllByChannelId(channelId, finalPageable);
+        else if(StringUtils.hasText(search)) page = postRepository.findAllBySearch(search, finalPageable);
+        else page = postRepository.findAllWithChannelAndUser(finalPageable);
+
         return page.map(post -> PostDto.Response.from(post));
     }
 
@@ -105,7 +130,7 @@ public class PostService {
             case "24h" -> LocalDateTime.now().minusDays(1);
             case "7d" -> LocalDateTime.now().minusDays(7);
             case "30d" -> LocalDateTime.now().minusDays(30);
-            default -> throw new BusinessException(ErrorCode.INVALID_INPUT);
+            default -> throw new BusinessException(ErrorCode.INVALID_REQUEST);
         };
 
         Page<Post> page = postRepository.findHotPosts(HOT_THRESHOLD, from, pageable);

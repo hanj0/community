@@ -66,7 +66,12 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Comment parentComment = getParentComment(postId, requestDto.getParentCommentId());
+        Long parentId = requestDto.getParentId();
+        Comment parentComment = null;
+        if(parentId != null) {
+            parentComment = commentRepository.getReferenceById(parentId);
+            commentRepository.increaseReplyCount(parentId);
+        }
 
         Comment comment = Comment.builder()
                 .user(user)
@@ -80,7 +85,7 @@ public class CommentService {
         return CommentDto.Response.builder()
                 .id(savedComment.getId())
                 .content(savedComment.getContent())
-                .parentId(savedComment.getParentComment() != null ? savedComment.getParentComment().getId() : null)
+                .parentId(parentId)
                 .userInfo(UserDto.Response.from(user))
                 .reactionStatus(false)
                 .replyCount(0)
@@ -120,7 +125,8 @@ public class CommentService {
         Comment parentComment = commentRepository.findById(parentCommentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
-        // 같은 게시글 검증
+        if (!postId.equals(parentComment.getPost().getId()))
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
 
         return parentComment;
     }

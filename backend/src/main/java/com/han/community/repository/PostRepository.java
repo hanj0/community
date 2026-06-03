@@ -13,12 +13,43 @@ import java.util.Optional;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("""
-            SELECT p FROM Post p
-            JOIN FETCH p.channel
-            JOIN FETCH p.user
-            WHERE p.id = :id
-          """)
+SELECT p FROM Post p
+JOIN FETCH p.channel
+JOIN FETCH p.user
+WHERE p.id = :id
+""")
     Optional<Post> findByIdWithDetails(@Param("id") Long id);
+
+    @Query("""
+SELECT p FROM Post p
+JOIN FETCH p.channel
+JOIN FETCH p.user
+""")
+    Page<Post> findAllWithChannelAndUser(Pageable pageable);
+
+    @Query("""
+SELECT p FROM Post p
+JOIN FETCH p.user
+WHERE p.channel.id = :channelId
+""")
+    Page<Post> findAllByChannelId(@Param("channelId")Long channelId, Pageable pageable);
+
+    @Query("""
+SELECT p FROM Post p
+JOIN FETCH p.user u
+WHERE p.title LIKE concat('%', :search, '%')
+OR u.username LIKE concat('%', :search, '%')
+""")
+    Page<Post> findAllBySearch(@Param("search")String search, Pageable pageable);
+
+    @Query("""
+SELECT p FROM Post p
+JOIN FETCH p.user u
+WHERE (p.title LIKE concat('%', :search, '%')
+OR u.username LIKE concat('%', :search, '%'))
+AND p.channel.id = :channelId
+""")
+    Page<Post> findAllByChannelIdAndSearch(@Param("channelId")Long channelId, @Param("search")String search, Pageable pageable);
 
     @Query("""
 SELECT p FROM Post p

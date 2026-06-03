@@ -31,6 +31,7 @@ public class PostDto {
         private Long id;
         private String title;
         private String content;
+
         private int viewCount;
         private int likeCount;
         private int dislikeCount;

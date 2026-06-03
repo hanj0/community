@@ -21,13 +21,14 @@ public class Post extends BaseSoftDeleteEntity {
     private User user;
 
     private String title;
-    @Lob
+
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     private int viewCount;
     private int likeCount;
     private int dislikeCount;
-    private int CommentCount;
+    private int commentCount;
 
     protected Post() {}
 

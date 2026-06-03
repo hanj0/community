@@ -29,7 +29,7 @@ public class Comment extends BaseSoftDeleteEntity {
     @JoinColumn(name = "parent_id")
     private Comment parentComment;
 
-    @Lob
+    @Column(length = 1000)
     private String content;
 
     private int likeCount;
@@ -39,4 +39,5 @@ public class Comment extends BaseSoftDeleteEntity {
     public void update(String content) {
         this.content = content;
     }
+
 }

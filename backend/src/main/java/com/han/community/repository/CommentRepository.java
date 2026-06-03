@@ -5,13 +5,29 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    @EntityGraph(attributePaths = {"user"})
-    Page<Comment> findByPostIdAndParentCommentIsNull(Long postId, Pageable pageable);
+    @Query("""
+SELECT c FROM Comment c
+JOIN FETCH c.user
+JOIN FETCH c.post
+WHERE c.post.id = :postId
+AND c.parentComment.id IS NULL
+""")
+    Page<Comment> findByPostIdAndParentCommentIsNull(@Param("postId") Long postId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"user"})
-    Page<Comment> findByParentCommentId(Long parentCommentId, Pageable pageable);
+    @Query("""
+SELECT c FROM Comment c
+JOIN FETCH c.user
+WHERE c.parentComment.id = :parentId
+""")
+    Page<Comment> findByParentCommentId(@Param("parentId")Long parentId, Pageable pageable);
 
+    @Modifying
+    @Query("UPDATE Comment c SET c.replyCount = c.replyCount + 1 WHERE c.id = :parentId")
+    void increaseReplyCount(@Param("parentId")Long parentId);
 }

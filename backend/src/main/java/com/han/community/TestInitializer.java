@@ -30,22 +30,5 @@ public class TestInitializer {
                     )
             );
         }
-        if (userRepository.findByUsername("string").isEmpty()) {
-            userRepository.save(
-                    new User(
-                            "string",
-                            "string@string",
-                            passwordEncoder.encode("string"),
-                            Role.USER
-                    )
-            );
-        }
-        if (channelRepository.findByName("test").isEmpty()) {
-            channelRepository.save(
-                    Channel.builder()
-                            .name("test")
-                            .build()
-            );
-        }
     }
 }

@@ -49,7 +49,7 @@ public class PostService {
 
         Post savePost = postRepository.save(post);
 
-        return PostDto.Response.from(post);
+        return PostDto.Response.from(savePost);
     }
 
     @Transactional

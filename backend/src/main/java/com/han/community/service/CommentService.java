@@ -73,6 +73,8 @@ public class CommentService {
             commentRepository.increaseReplyCount(parentId);
         }
 
+        postRepository.increaseCommentCount(postId);
+
         Comment comment = Comment.builder()
                 .user(user)
                 .post(post)
@@ -114,8 +116,20 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, Long userId) {
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if(!comment.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        commentRepository.deleteByParentCommentId(id);
         commentRepository.deleteById(id);
+
+        Long postId = comment.getPost().getId();
+        postRepository.syncCommentCount(postId);
     }
 
     private Comment getParentComment(Long postId, Long parentCommentId) {

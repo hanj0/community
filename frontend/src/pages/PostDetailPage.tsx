@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, PostSummary, CommentData } from '../types';
-import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost } from '../api/posts';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost, deletePost } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
 import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
@@ -31,6 +31,9 @@ export default function PostDetailPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [comments, setComments] = useState<CommentData[]>([]);
   const [commentPage, setCommentPage] = useState(0);
@@ -135,6 +138,21 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!post || deleteLoading) return;
+    setDeleteLoading(true);
+    try {
+      await deletePost(post.id);
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/all', { replace: true });
+      }
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const totalComments = comments.reduce((a, c) => a + 1 + c.replyCount, 0);
 
   if (postLoading) {
@@ -201,7 +219,19 @@ export default function PostDetailPage() {
               </div>
               {isPostAuthor && !isEditingPost && (
                 <div className="rac">
-                  <button className="ac" onClick={handleStartEditPost}>수정</button>
+                  {isConfirmingDelete
+                    ? <>
+                        <span style={{ fontSize: 12, color: 'var(--t2)' }}>정말 삭제할까요?</span>
+                        <button className="ac dng" onClick={handleDeletePost} disabled={deleteLoading}>
+                          {deleteLoading ? '삭제 중...' : '삭제'}
+                        </button>
+                        <button className="ac" onClick={() => setIsConfirmingDelete(false)}>취소</button>
+                      </>
+                    : <>
+                        <button className="ac" onClick={handleStartEditPost}>수정</button>
+                        <button className="ac dng" onClick={() => setIsConfirmingDelete(true)}>삭제</button>
+                      </>
+                  }
                 </div>
               )}
             </div>

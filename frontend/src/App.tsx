@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import './styles/community.css';
 import GNB from './components/layout/GNB';
 import HomePage from './pages/HomePage';
@@ -13,16 +13,18 @@ import { useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  return user ? <>{children}</> : <Navigate to="/login" replace />;
+  const location = useLocation();
+  return user ? <>{children}</> : <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
 }
 
 function LoginPromptModal() {
   const { dismissLoginPrompt } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleConfirm = () => {
     dismissLoginPrompt();
-    navigate('/login');
+    navigate('/login', { state: { from: location.pathname + location.search } });
   };
 
   return (

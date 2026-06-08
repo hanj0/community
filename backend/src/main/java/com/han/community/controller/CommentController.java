@@ -72,9 +72,10 @@ public class CommentController {
     }
 
     @DeleteMapping("/comments/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                       @AuthenticationPrincipal User user) {
 
-        commentService.delete(id);
+        commentService.delete(id, user.getId());
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();

@@ -9,6 +9,7 @@ import com.han.community.entity.User;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.ChannelRepository;
+import com.han.community.repository.CommentRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
 import lombok.AllArgsConstructor;
@@ -29,12 +30,13 @@ public class PostService {
     private final PostRepository postRepository;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     private static final int HOT_THRESHOLD = 20;
     private static final int PAGE_SIZE_LIMIT = 100;
 
     @Transactional
-    public PostDto.Response create(PostDto.CreateRequest requestDto, Long userId) {
+    public PostDto.SummaryResponse create(PostDto.CreateRequest requestDto, Long userId) {
 
         Channel channel = channelRepository.findById(requestDto.getChannelId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHANNEL_NOT_FOUND));
@@ -49,14 +51,18 @@ public class PostService {
 
         Post savePost = postRepository.save(post);
 
-        return PostDto.Response.from(savePost);
+        return PostDto.SummaryResponse.from(savePost);
     }
 
     @Transactional
-    public PostDto.DetailResponse getDetail(Long id) {
+    public PostDto.DetailResponse getDetail(Long id, boolean alreadyViewed) {
 
         Post post = postRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        if(!alreadyViewed) {
+            postRepository.increaseViewCount(id);
+        }
 
         return PostDto.DetailResponse.builder()
                 .id(post.getId())
@@ -76,28 +82,36 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto.Response update(Long postId, PostDto.UpdateRequest requestDto, Long userId) {
+    public PostDto.SummaryResponse update(Long postId, PostDto.UpdateRequest requestDto, Long userId) {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        if(!userId.equals(post.getUser().getId()))
+        if(!post.getUser().getId().equals(userId))
             throw new BusinessException(ErrorCode.FORBIDDEN);
 
         post.update(requestDto);
 
-        return PostDto.Response.from(post);
+        return PostDto.SummaryResponse.from(post);
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long postId, Long userId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        if(!post.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
 
         // soft delete로 수정 필요
-        postRepository.deleteById(id);
+        commentRepository.deleteByPostId(postId);
+        postRepository.deleteById(postId);
     }
 
     @Transactional
-    public Page<PostDto.Response> getPostPage(Long channelId, String search, String sort, Pageable pageable) {
+    public Page<PostDto.SummaryResponse> getPostPage(Long channelId, String search, String sort, Pageable pageable) {
 
         Sort pageSort = switch(sort) {
             case "latest" -> Sort.by(Sort.Direction.DESC, "createdAt");
@@ -120,11 +134,11 @@ public class PostService {
         else if(StringUtils.hasText(search)) page = postRepository.findAllBySearch(search, finalPageable);
         else page = postRepository.findAllWithChannelAndUser(finalPageable);
 
-        return page.map(post -> PostDto.Response.from(post));
+        return page.map(post -> PostDto.SummaryResponse.from(post));
     }
 
     @Transactional
-    public Page<PostDto.Response> getHotPostPage(String period, Pageable pageable) {
+    public Page<PostDto.SummaryResponse> getHotPostPage(String period, Pageable pageable) {
 
         LocalDateTime from = switch(period) {
             case "24h" -> LocalDateTime.now().minusDays(1);
@@ -135,6 +149,6 @@ public class PostService {
 
         Page<Post> page = postRepository.findHotPosts(HOT_THRESHOLD, from, pageable);
 
-        return page.map(post -> PostDto.Response.from(post));
+        return page.map(post -> PostDto.SummaryResponse.from(post));
     }
 }

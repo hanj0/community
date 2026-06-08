@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { PostSummary, PageMeta, SortType, ViewType } from '../types';
 import { fetchPosts } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
@@ -13,12 +13,15 @@ const PAGE_SIZE = 20;
 export default function AllPage() {
   const navigate = useNavigate();
   const channels = useChannels();
-  const [channelId, setChannelId] = useState('all');
-  const [sort, setSort] = useState<SortType>('latest');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const channelId = searchParams.get('channel') ?? 'all';
+  const sort = (searchParams.get('sort') as SortType) ?? 'latest';
+  const currentPage = parseInt(searchParams.get('page') ?? '1', 10);
+
   const [view, setView] = useState<ViewType>('card');
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [meta, setMeta] = useState<PageMeta>({ page: 0, size: PAGE_SIZE, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
@@ -73,21 +76,37 @@ export default function AllPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearch(searchInput);
-    setCurrentPage(1);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('page');
+      return next;
+    });
   };
 
   const handleChannelChange = (id: string) => {
-    setChannelId(id);
-    setCurrentPage(1);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('channel', id);
+      next.delete('page');
+      return next;
+    });
   };
 
   const handleSortChange = (s: SortType) => {
-    setSort(s);
-    setCurrentPage(1);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('sort', s);
+      next.delete('page');
+      return next;
+    });
   };
 
   const handlePageChange = (p: number) => {
-    setCurrentPage(p);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('page', String(p));
+      return next;
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -144,7 +163,7 @@ export default function AllPage() {
           <div className="rcnt">
             "{search}" 검색 결과 {meta.total}건
             <button
-              onClick={() => { setSearch(''); setSearchInput(''); setCurrentPage(1); }}
+              onClick={() => { setSearch(''); setSearchInput(''); }}
               style={{ marginLeft: 8, fontSize: 11, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             >
               초기화
@@ -185,7 +204,7 @@ export default function AllPage() {
 
         <Pagination current={currentPage} totalPages={meta.totalPages} onChange={handlePageChange} />
       </div>
-      <Sidebar selectedChannelId={channelId} onChannelClick={handleChannelChange} />
+      <Sidebar />
     </div>
   );
 }

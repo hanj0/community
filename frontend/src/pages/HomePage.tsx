@@ -28,7 +28,7 @@ export default function HomePage() {
   }, [period]);
 
   useEffect(() => {
-    fetchPosts({ sort: 'createdAt', size: 5 })
+    fetchPosts({ sort: 'latest', size: 5 })
       .then(res => setRecentPosts(res.data.filter(p => !p.isNotice)))
       .catch(() => {});
   }, []);

@@ -8,7 +8,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
     }
     throw new Error(body?.error?.message ?? '서버 오류가 발생했습니다.');
   }
-  return body.data as T;
+  return body?.data as T;
 }
 
 function buildUrl(path: string, params: Record<string, string | number | undefined>): string {
@@ -79,6 +79,22 @@ export async function updatePost(id: number, data: { title: string; content: str
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify(data),
+  });
+  await handleResponse<unknown>(res);
+}
+
+export async function deletePost(id: number): Promise<void> {
+  const res = await fetch(`/api/posts/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  await handleResponse<unknown>(res);
+}
+
+export async function deleteComment(id: number): Promise<void> {
+  const res = await fetch(`/api/comments/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
   });
   await handleResponse<unknown>(res);
 }

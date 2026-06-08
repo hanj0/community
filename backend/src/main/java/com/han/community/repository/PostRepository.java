@@ -4,6 +4,7 @@ import com.han.community.entity.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -60,4 +61,16 @@ AND p.createdAt >= :from
 ORDER BY p.likeCount DESC
 """)
     Page<Post> findHotPosts(@Param("threshold")int threshold, @Param("from")LocalDateTime from, Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
+    void increaseViewCount(@Param("id")Long id);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :id")
+    void increaseCommentCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.commentCount = (SELECT COUNT(c) FROM Comment c WHERE c.post.id = :id) WHERE p.id = :id")
+    void syncCommentCount(@Param("id") Long id);
 }

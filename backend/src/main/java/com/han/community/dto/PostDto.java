@@ -26,7 +26,7 @@ public class PostDto {
 
     @Getter
     @AllArgsConstructor
-    public static class Response {
+    public static class SummaryResponse {
 
         private Long id;
         private String title;
@@ -39,8 +39,8 @@ public class PostDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public static Response from(Post post) {
-            return new Response(
+        public static SummaryResponse from(Post post) {
+            return new SummaryResponse(
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
@@ -76,12 +76,14 @@ public class PostDto {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
+        private boolean canEdit;
+        private boolean canDelete;
+
         public static DetailResponse from(Post post) {
             return DetailResponse.builder()
                     .id(post.getId())
                     .title(post.getTitle())
                     .content(post.getContent())
-
                     .viewCount(post.getViewCount())
                     .likeCount(post.getLikeCount())
                     .dislikeCount(post.getDislikeCount())
@@ -92,4 +94,8 @@ public class PostDto {
         }
     }
 
+    public static class TitleResponse {
+        private Long id;
+        private String title;
+    }
 }

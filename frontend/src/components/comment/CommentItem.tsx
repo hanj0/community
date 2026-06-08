@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CommentData } from '../../types';
-import { fetchReplies, updateComment, createComment } from '../../api/posts';
+import { fetchReplies, updateComment, deleteComment, createComment } from '../../api/posts';
 import { getAvatarStyle } from '../../utils/avatar';
 import { formatRelativeTime } from '../../utils/time';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +27,9 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
   const [editSaving, setEditSaving] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleted, setDeleted] = useState(false);
 
   const isCommentAuthor = user?.id === comment.userInfo?.id;
 
@@ -36,6 +39,17 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   };
 
   const handleCancelEdit = () => setIsEditing(false);
+
+  const handleDelete = async () => {
+    if (deleteLoading) return;
+    setDeleteLoading(true);
+    try {
+      await deleteComment(comment.id);
+      setDeleted(true);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const handleSaveEdit = async () => {
     if (editSaving) return;
@@ -86,6 +100,8 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
     )
     : content;
 
+  if (deleted) return null;
+
   return (
     <>
       <div className={'cmt' + (isReply ? ' rp' : '')}>
@@ -105,7 +121,19 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
             <button className={'cmb' + (disliked ? ' dk' : '')} onClick={toggleDislike}>▼ {dislikes}</button>
             {!isReply && <button className="cmb" onClick={() => setShowInput(v => !v)}>답글</button>}
             {isCommentAuthor && !isEditing && (
-              <button className="cmb" onClick={handleStartEdit}>수정</button>
+              <>
+                <button className="cmb" onClick={handleStartEdit}>수정</button>
+                {isConfirmingDelete
+                  ? <>
+                      <span style={{ fontSize: 12, color: 'var(--t2)' }}>삭제할까요?</span>
+                      <button className="cmb dng" onClick={handleDelete} disabled={deleteLoading}>
+                        {deleteLoading ? '삭제 중...' : '삭제'}
+                      </button>
+                      <button className="cmb" onClick={() => setIsConfirmingDelete(false)}>취소</button>
+                    </>
+                  : <button className="cmb dng" onClick={() => setIsConfirmingDelete(true)}>삭제</button>
+                }
+              </>
             )}
             <button className="cmb">신고</button>
           </div>

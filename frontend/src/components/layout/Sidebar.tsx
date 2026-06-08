@@ -1,16 +1,15 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useChannels } from '../../hooks/useChannels';
 
-interface SidebarProps {
-  selectedChannelId?: string;
-  onChannelClick?: (channelId: string) => void;
-}
-
-export default function Sidebar({ selectedChannelId, onChannelClick }: SidebarProps = {}) {
+export default function Sidebar() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const channels = useChannels();
+
+  const activeChannelId = pathname === '/all' ? (searchParams.get('channel') ?? 'all') : null;
 
   return (
     <div className="sidebar">
@@ -50,9 +49,9 @@ export default function Sidebar({ selectedChannelId, onChannelClick }: SidebarPr
         <div className="sbb">
           {channels.map(ch => (
             <div
-              className={'chitem' + (onChannelClick && selectedChannelId === ch.id ? ' active' : '') + (onChannelClick ? ' clickable' : '')}
+              className={'chitem clickable' + (activeChannelId === ch.id ? ' active' : '')}
               key={ch.id}
-              onClick={() => onChannelClick?.(ch.id)}
+              onClick={() => navigate(`/all?channel=${ch.id}&sort=latest`)}
             >
               <div className="chdot" style={{ background: ch.color }} />
               <span className="chnm">{ch.name}</span>

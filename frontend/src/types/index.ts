@@ -20,7 +20,7 @@ export interface ChannelData {
 export interface PostSummary {
   id: number;
   title: string;
-  author: string;
+  authorInfo: { id: number; username: string } | null;
   createdAt: string;
   channelId: string;
   channelName: string;
@@ -35,7 +35,7 @@ export interface PostSummary {
 
 export interface CommentData {
   id: number;
-  userInfo: { id: number; username: string } | null;
+  authorInfo: { id: number; username: string } | null;
   content: string;
   createdAt: string;
   likes: number;
@@ -79,6 +79,15 @@ export interface PostDetail {
   viewCount: number;
   createdAt: string;
   isPinned?: boolean;
+  isBookmarked?: boolean;
+}
+
+export interface MyComment {
+  id: number;
+  content: string;
+  createdAt: string;
+  postId: number;
+  postTitle: string;
 }
 
 export interface SignupRequest {

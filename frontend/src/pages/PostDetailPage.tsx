@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, PostSummary, CommentData } from '../types';
-import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost, deletePost } from '../api/posts';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost, deletePost, toggleBookmark } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
 import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
@@ -52,7 +52,7 @@ export default function PostDetailPage() {
     setPostLoading(true);
     setPostError(null);
     fetchPostDetail(postId)
-      .then(p => { setPost(p); setLikeCount(p.likeCount); })
+      .then(p => { setPost(p); setLikeCount(p.likeCount); setBookmarked(p.isBookmarked ?? false); })
       .catch(e => setPostError(e.message))
       .finally(() => setPostLoading(false));
   }, [postId]);
@@ -266,7 +266,7 @@ export default function PostDetailPage() {
               <button className={'vbtn2' + (liked ? ' lk' : '')} onClick={toggleLike}>
                 ♥ 좋아요 {likeCount.toLocaleString()}
               </button>
-              <button className={'vbtn2' + (bookmarked ? ' bk' : '')} onClick={() => setBookmarked(v => !v)}>
+              <button className={'vbtn2' + (bookmarked ? ' bk' : '')} onClick={() => { setBookmarked(v => !v); toggleBookmark(postId, !bookmarked).catch(() => setBookmarked(v => !v)); }}>
                 {bookmarked ? '★' : '☆'} 북마크
               </button>
             </div>

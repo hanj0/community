@@ -90,7 +90,7 @@ export default function HomePage() {
                   {p.hasImage && <div className="ith" style={{ width: 34, height: 26, fontSize: 8 }}>IMG</div>}
                 </div>
                 <div className="pmeta">
-                  <span className="mi">{p.author}</span>
+                  <span className="mi">{p.authorInfo?.username}</span>
                   <span className="mi">·</span>
                   <span className="mi">{formatRelativeTime(p.createdAt)}</span>
                   <span className="mi">♥ {p.likeCount}</span>

@@ -29,7 +29,7 @@ public class CommentService {
 
         return commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable).map(
                 c -> CommentDto.Response.builder()
-                        .userInfo(UserDto.Response.from(c.getUser()))
+                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
                         .replyCount(c.getReplyCount())
@@ -45,7 +45,7 @@ public class CommentService {
 
         return commentRepository.findByParentCommentId(commentId, pageable).map(
                 c -> CommentDto.Response.builder()
-                        .userInfo(UserDto.Response.from(c.getUser()))
+                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
                         .parentId(c.getParentComment().getId())
@@ -88,7 +88,7 @@ public class CommentService {
                 .id(savedComment.getId())
                 .content(savedComment.getContent())
                 .parentId(parentId)
-                .userInfo(UserDto.Response.from(user))
+                .authorInfo(UserDto.authorResponse.from(user))
                 .reactionStatus(false)
                 .replyCount(0)
                 .likeCount(0)

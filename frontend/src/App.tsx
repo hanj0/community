@@ -12,8 +12,16 @@ import WritePostPage from './pages/WritePostPage';
 import { useAuth } from './context/AuthContext';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--t3)', fontSize: 14 }}>
+        <div className="spin" style={{ margin: '0 auto 12px' }} />
+        불러오는 중...
+      </div>
+    );
+  }
   return user ? <>{children}</> : <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
 }
 

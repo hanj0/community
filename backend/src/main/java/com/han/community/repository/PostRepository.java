@@ -73,4 +73,6 @@ ORDER BY p.likeCount DESC
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = (SELECT COUNT(c) FROM Comment c WHERE c.post.id = :id) WHERE p.id = :id")
     void syncCommentCount(@Param("id") Long id);
+
+    Page<Post> findByUserId(Long userId, Pageable pageable);
 }

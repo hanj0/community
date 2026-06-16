@@ -31,7 +31,7 @@ public class PostDto {
         private Long id;
         private String title;
         private String content;
-
+        private UserDto.authorResponse authorInfo;
         private int viewCount;
         private int likeCount;
         private int dislikeCount;
@@ -44,6 +44,7 @@ public class PostDto {
                     post.getId(),
                     post.getTitle(),
                     post.getContent(),
+                    UserDto.authorResponse.from(post.getUser()),
                     post.getViewCount(),
                     post.getLikeCount(),
                     post.getDislikeCount(),
@@ -62,7 +63,7 @@ public class PostDto {
         private String title;
         private String content;
 
-        private UserDto.Response userInfo;
+        private UserDto.authorResponse authorInfo;
         private ChannelDto.Response channelInfo;
 
         private int viewCount;

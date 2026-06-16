@@ -20,7 +20,7 @@ export default function FeedCard({ post, channelColor, onClick }: FeedCardProps)
         </div>
         <div className="fpt">{post.title}</div>
         <div className="fpm">
-          <span className="fs">{post.author}</span>
+          <span className="fs">{post.authorInfo?.username}</span>
           <span className="fs">·</span>
           <span className="fs">{formatRelativeTime(post.createdAt)}</span>
           <span className="fs lk">♥ {post.likeCount}</span>

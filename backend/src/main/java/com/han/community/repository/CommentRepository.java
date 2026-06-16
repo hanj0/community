@@ -1,5 +1,6 @@
 package com.han.community.repository;
 
+import com.han.community.dto.UserDto;
 import com.han.community.entity.Comment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,4 +37,18 @@ WHERE c.parentComment.id = :parentId
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.parentComment.id = :parentId")
     void deleteByParentCommentId(Long parentId);
+
+    @Query("""
+SELECT new com.han.community.dto.UserDto$MyCommentResponse(
+    c.id,
+    c.content,
+    c.createdAt,
+    p.id,
+    p.title
+)
+FROM Comment c
+JOIN c.post p
+WHERE c.user.id = :userId
+""")
+    Page<UserDto.MyCommentResponse> findMyComments(@Param("userId") Long userId, Pageable pageable);
 }

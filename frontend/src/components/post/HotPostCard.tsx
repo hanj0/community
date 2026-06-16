@@ -22,7 +22,7 @@ export default function HotPostCard({ post, channelColor, rank, onClick }: HotPo
         </div>
         <div className="hpt">{post.title}</div>
         <div className="hpm">
-          <span className="mi">{post.author}</span>
+          <span className="mi">{post.authorInfo?.username}</span>
           <span className="mi">{formatRelativeTime(post.createdAt)}</span>
           <span className="mi">♥ {post.likeCount.toLocaleString()}</span>
           <span className="mi">댓글 {post.commentCount.toLocaleString()}</span>

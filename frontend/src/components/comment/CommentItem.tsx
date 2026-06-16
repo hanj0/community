@@ -31,7 +31,7 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
 
-  const isCommentAuthor = user?.id === comment.userInfo?.id;
+  const isCommentAuthor = user?.id === comment.authorInfo?.id;
 
   const handleStartEdit = () => {
     setEditText(content);
@@ -63,7 +63,7 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
     }
   };
 
-  const author = comment.userInfo?.username ?? '';
+  const author = comment.authorInfo?.username ?? '';
   const { av, ab, ac } = getAvatarStyle(author || '?');
 
   const toggleLike = () => {

@@ -1,4 +1,4 @@
-import type { CreatePostRequest, PostDetail, PagedResponse, PostSummary, CommentData } from '../types';
+import type { CreatePostRequest, PostDetail, PagedResponse, PostSummary, CommentData, MyComment } from '../types';
 
 async function handleResponse<T>(res: Response): Promise<T> {
   const body = await res.json().catch(() => null);
@@ -52,13 +52,14 @@ interface RawPostDetail {
   id: number;
   title: string;
   content: string;
-  userInfo: { id: number; username: string } | null;
+  authorInfo: { id: number; username: string } | null;
   channelInfo: { id: number; name: string; description: string } | null;
   viewCount: number;
   likeCount: number;
   commentCount: number;
   createdAt: string;
   isPinned?: boolean;
+  isBookmarked?: boolean;
 }
 
 export async function fetchPostDetail(id: number): Promise<PostDetail> {
@@ -66,11 +67,51 @@ export async function fetchPostDetail(id: number): Promise<PostDetail> {
   const raw = await handleResponse<RawPostDetail>(res);
   return {
     ...raw,
-    authorId: raw.userInfo?.id ?? 0,
-    authorName: raw.userInfo?.username ?? '',
+    authorId: raw.authorInfo?.id ?? 0,
+    authorName: raw.authorInfo?.username ?? '',
     channelId: String(raw.channelInfo?.id ?? ''),
     channelName: raw.channelInfo?.name ?? '',
   };
+}
+
+export async function toggleBookmark(postId: number, add: boolean): Promise<void> {
+  const res = await fetch(`/api/posts/${postId}/bookmark`, {
+    method: add ? 'POST' : 'DELETE',
+    credentials: 'include',
+  });
+  await handleResponse<unknown>(res);
+}
+
+export async function fetchMyStats(): Promise<{ postCount: number; commentCount: number; createdAt: string }> {
+  const res = await fetch('/api/users/me/stats', { credentials: 'include' });
+  return handleResponse<{ postCount: number; commentCount: number; createdAt: string }>(res);
+}
+
+export async function fetchMyPosts(params: { page?: number; size?: number }): Promise<PagedResponse<PostSummary>> {
+  const res = await fetch(
+    buildUrl('/api/users/me/posts', params as Record<string, string | number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('내 게시글을 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<PostSummary>>;
+}
+
+export async function fetchMyComments(params: { page?: number; size?: number }): Promise<PagedResponse<MyComment>> {
+  const res = await fetch(
+    buildUrl('/api/users/me/comments', params as Record<string, string | number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('내 댓글을 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<MyComment>>;
+}
+
+export async function fetchMyBookmarks(params: { page?: number; size?: number }): Promise<PagedResponse<PostSummary>> {
+  const res = await fetch(
+    buildUrl('/api/users/me/bookmarks', params as Record<string, string | number | undefined>),
+    { credentials: 'include' },
+  );
+  if (!res.ok) throw new Error('북마크를 불러올 수 없습니다.');
+  return res.json() as Promise<PagedResponse<PostSummary>>;
 }
 
 export async function updatePost(id: number, data: { title: string; content: string }): Promise<void> {

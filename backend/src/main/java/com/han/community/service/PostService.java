@@ -68,7 +68,7 @@ public class PostService {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .userInfo(UserDto.Response.from(post.getUser()))
+                .authorInfo(UserDto.authorResponse.from(post.getUser()))
                 .channelInfo(ChannelDto.Response.from(post.getChannel()))
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())

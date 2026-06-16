@@ -4,6 +4,7 @@ import { getMe, logout as apiLogout } from '../api/auth';
 
 interface AuthContextValue {
   user: User | null;
+  loading: boolean;
   setUser: (user: User | null) => void;
   logout: () => void;
   showLoginPrompt: boolean;
@@ -14,10 +15,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
-    getMe().then(setUser);
+    getMe().then(setUser).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, showLoginPrompt, dismissLoginPrompt }}>
+    <AuthContext.Provider value={{ user, loading, setUser, logout, showLoginPrompt, dismissLoginPrompt }}>
       {children}
     </AuthContext.Provider>
   );

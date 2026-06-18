@@ -29,17 +29,20 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SuccessResponse<PostDto.DetailResponse>> getPostDetail(@PathVariable Long id,
-                                                                                 HttpServletRequest httpRequest,
-                                                                                 HttpServletResponse httpResponse) {
+    public ResponseEntity<SuccessResponse<PostDto.DetailResponse>> getPostDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User user,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
 
+/// redis로 배치작업, 중복조회방지 리팩토링
         String cookieName = "vp_" + id;
         boolean alreadyViewed = Arrays.stream(
                         httpRequest.getCookies() != null ? httpRequest.getCookies() : new Cookie[0])
                 .anyMatch(c -> c.getName().equals(cookieName));
 
-
-        PostDto.DetailResponse response = postService.getDetail(id, alreadyViewed);
+        Long userId = user == null ? null : user.getId();
+        PostDto.DetailResponse response = postService.getDetail(id, userId, alreadyViewed);
 
         if(!alreadyViewed) {
             Cookie cookie = new Cookie(cookieName, "true");

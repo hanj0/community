@@ -1,6 +1,7 @@
 package com.han.community.dto;
 
 import com.han.community.entity.Post;
+import com.han.community.entity.ReactionType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,7 +72,7 @@ public class PostDto {
         private int dislikeCount;
         private int commentCount;
 
-        private String reactionStatus;
+        private ReactionType reactionType;
         private boolean bookmarked;
 
         private LocalDateTime createdAt;

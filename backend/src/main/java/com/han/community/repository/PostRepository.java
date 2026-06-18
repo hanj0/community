@@ -64,15 +64,33 @@ ORDER BY p.likeCount DESC
 
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
-    void increaseViewCount(@Param("id")Long id);
+    void incrementViewCount(@Param("id")Long id);
 
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :id")
-    void increaseCommentCount(@Param("id") Long id);
+    void incrementCommentCount(@Param("id") Long id);
 
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = (SELECT COUNT(c) FROM Comment c WHERE c.post.id = :id) WHERE p.id = :id")
     void syncCommentCount(@Param("id") Long id);
 
     Page<Post> findByUserId(Long userId, Pageable pageable);
+
+
+// 좋아요/싫어요 기능
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount - 1 WHERE p.id = :id")
+    void decrementLikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.dislikeCount = p.dislikeCount - 1 WHERE p.id = :id")
+    void decrementDislikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.likeCount = p.likeCount + 1 WHERE p.id = :id")
+    void incrementLikeCount(@Param("id") Long id);
+
+    @Modifying
+    @Query("UPDATE Post p SET p.dislikeCount = p.dislikeCount + 1 WHERE p.id = :id")
+    void incrementDislikeCount(@Param("id") Long id);
 }

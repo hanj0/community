@@ -73,7 +73,7 @@ public class CommentService {
             commentRepository.increaseReplyCount(parentId);
         }
 
-        postRepository.increaseCommentCount(postId);
+        postRepository.incrementCommentCount(postId);
 
         Comment comment = Comment.builder()
                 .user(user)

@@ -1,23 +1,19 @@
 package com.han.community.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-public class CommentReaction {
+public class CommentReaction extends BaseTimeEntity{
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User user;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Comment comment;
-
-    private Character type;
-
-    private LocalDateTime createdAt;
+    @Enumerated(EnumType.STRING)
+    private ReactionType type;
 }

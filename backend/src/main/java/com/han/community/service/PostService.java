@@ -5,14 +5,13 @@ import com.han.community.dto.PostDto;
 import com.han.community.dto.UserDto;
 import com.han.community.entity.Channel;
 import com.han.community.entity.Post;
+import com.han.community.entity.PostReaction;
 import com.han.community.entity.User;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
-import com.han.community.repository.ChannelRepository;
-import com.han.community.repository.CommentRepository;
-import com.han.community.repository.PostRepository;
-import com.han.community.repository.UserRepository;
+import com.han.community.repository.*;
 import lombok.AllArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +30,7 @@ public class PostService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final PostReactionRepository postReactionRepository;
 
     private static final int HOT_THRESHOLD = 20;
     private static final int PAGE_SIZE_LIMIT = 100;
@@ -55,13 +55,17 @@ public class PostService {
     }
 
     @Transactional
-    public PostDto.DetailResponse getDetail(Long id, boolean alreadyViewed) {
+    public PostDto.DetailResponse getDetail(Long postId, @Nullable Long userId, boolean alreadyViewed) {
 
-        Post post = postRepository.findByIdWithDetails(id)
+        Post post = postRepository.findByIdWithDetails(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
+/// reaction을 post조회할때 left join으로 한번에 조회하는 방법도 생각
+        PostReaction postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
+                .orElse(null);
+
         if(!alreadyViewed) {
-            postRepository.increaseViewCount(id);
+            postRepository.incrementViewCount(postId);
         }
 
         return PostDto.DetailResponse.builder()
@@ -74,7 +78,7 @@ public class PostService {
                 .likeCount(post.getLikeCount())
                 .dislikeCount(post.getDislikeCount())
                 .commentCount(post.getCommentCount())
-                .reactionStatus(null)
+                .reactionType(postReaction == null ? null : postReaction.getType())
                 .bookmarked(false)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())

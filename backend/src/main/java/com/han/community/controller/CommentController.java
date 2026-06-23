@@ -26,10 +26,12 @@ public class CommentController {
     @GetMapping("/posts/{postId}/comments")
     public ResponseEntity<PageResponse<CommentDto.Response>> getComments(
             @PathVariable Long postId,
-            @PageableDefault(sort = "createdAt") Pageable pageable
+            @PageableDefault(sort = "createdAt") Pageable pageable,
+            @AuthenticationPrincipal User user
     ) {
 
-        Page<CommentDto.Response> response = commentService.getComments(postId, pageable);
+        Long userId = user == null ? null : user.getId();
+        Page<CommentDto.Response> response = commentService.getComments(postId, userId, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));
@@ -38,10 +40,12 @@ public class CommentController {
     @GetMapping("/comments/{commentId}/replies")
     public ResponseEntity<PageResponse<CommentDto.Response>> getReplies(
             @PathVariable Long commentId,
-            @PageableDefault(sort = "createdAt") Pageable pageable
+            @PageableDefault(sort = "createdAt") Pageable pageable,
+            @AuthenticationPrincipal User user
     ) {
 
-        Page<CommentDto.Response> response = commentService.getReplies(commentId, pageable);
+        Long userId = user == null ? null : user.getId();
+        Page<CommentDto.Response> response = commentService.getReplies(commentId, userId, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));

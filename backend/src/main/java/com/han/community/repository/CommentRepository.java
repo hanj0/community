@@ -51,4 +51,21 @@ JOIN c.post p
 WHERE c.user.id = :userId
 """)
     Page<UserDto.MyCommentResponse> findMyComments(@Param("userId") Long userId, Pageable pageable);
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.likeCount = c.likeCount + 1 WHERE c.id = :commentId")
+    void incrementLikeCount(@Param("commentId") Long commentId);
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.dislikeCount = c.dislikeCount + 1 WHERE c.id = :commentId")
+    void incrementDislikeCount(@Param("commentId") Long commentId);
+
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.likeCount = c.likeCount - 1 WHERE c.id = :commentId")
+    void decrementLikeCount(@Param("commentId") Long commentId);
+
+    @Modifying
+    @Query("UPDATE Comment c SET c.dislikeCount = c.dislikeCount - 1 WHERE c.id = :commentId")
+    void decrementDislikeCount(@Param("commentId") Long commentId);
 }

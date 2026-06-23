@@ -2,19 +2,24 @@ package com.han.community.service;
 
 import com.han.community.dto.CommentDto;
 import com.han.community.dto.UserDto;
-import com.han.community.entity.Comment;
-import com.han.community.entity.Post;
-import com.han.community.entity.User;
+import com.han.community.entity.*;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
+import com.han.community.repository.CommentReactionRepository;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,17 +28,35 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final CommentReactionRepository commentReactionRepository;
 
     @Transactional
-    public Page<CommentDto.Response> getComments(Long postId, Pageable pageable) {
+    public Page<CommentDto.Response> getComments(Long postId, @Nullable Long userId, Pageable pageable) {
 
-        return commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable).map(
+        Page<Comment> comments = commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable);
+
+        List<Long> commentIds = comments.getContent().stream()
+                .map(comment -> comment.getId())
+                .toList();
+
+        Map<Long, ReactionType> userReactions = (userId == null || commentIds.isEmpty())
+                ? Collections.emptyMap()
+                : commentReactionRepository.findByUserIdAndCommentIdIn(userId, commentIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            cr -> cr.getComment().getId(),
+                            cr -> cr.getType()
+                    ));
+
+        return comments.map(
                 c -> CommentDto.Response.builder()
-                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
+                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
+                        .likeCount(c.getLikeCount())
+                        .dislikeCount(c.getDislikeCount())
                         .replyCount(c.getReplyCount())
-                        .reactionStatus(false)
+                        .reactionType(userReactions.get(c.getId()))
                         .createdAt(c.getCreatedAt())
                         .updatedAt(c.getUpdatedAt())
                         .build()
@@ -41,9 +64,24 @@ public class CommentService {
     }
 
     @Transactional
-    public Page<CommentDto.Response> getReplies(Long commentId, Pageable pageable) {
+    public Page<CommentDto.Response> getReplies(Long commentId, @Nullable Long userId, Pageable pageable) {
 
-        return commentRepository.findByParentCommentId(commentId, pageable).map(
+        Page<Comment> replies = commentRepository.findByParentCommentId(commentId, pageable);
+
+        List<Long> commentIds = replies.getContent().stream()
+                .map(comment -> comment.getId())
+                .toList();
+
+        Map<Long, ReactionType> userReactions = (userId == null || commentIds.isEmpty())
+                ? Collections.emptyMap()
+                : commentReactionRepository.findByUserIdAndCommentIdIn(userId, commentIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            cr -> cr.getComment().getId(),
+                            cr -> cr.getType()
+                    ));
+
+        return replies.map(
                 c -> CommentDto.Response.builder()
                         .authorInfo(UserDto.authorResponse.from(c.getUser()))
                         .id(c.getId())
@@ -52,7 +90,7 @@ public class CommentService {
                         .likeCount(c.getLikeCount())
                         .dislikeCount(c.getDislikeCount())
                         .replyCount(c.getReplyCount())
-                        .reactionStatus(false)
+                        .reactionType(userReactions.get(c.getId()))
                         .createdAt(c.getCreatedAt())
                         .updatedAt(c.getUpdatedAt())
                         .build()
@@ -89,10 +127,10 @@ public class CommentService {
                 .content(savedComment.getContent())
                 .parentId(parentId)
                 .authorInfo(UserDto.authorResponse.from(user))
-                .reactionStatus(false)
-                .replyCount(0)
-                .likeCount(0)
-                .dislikeCount(0)
+                .reactionType(null)
+                .replyCount(savedComment.getReplyCount())
+                .likeCount(savedComment.getLikeCount())
+                .dislikeCount(savedComment.getDislikeCount())
                 .createdAt(savedComment.getCreatedAt())
                 .updatedAt(savedComment.getUpdatedAt())
                 .build();

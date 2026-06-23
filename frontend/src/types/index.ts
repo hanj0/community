@@ -38,11 +38,13 @@ export interface CommentData {
   authorInfo: { id: number; username: string } | null;
   content: string;
   createdAt: string;
-  likes: number;
-  dislikes: number;
-  reactionStatus: boolean;
+  likeCount: number;
+  dislikeCount: number;
+  reactionType: ReactionType | null;
   replyCount: number;
 }
+
+export type ReactionType = 'LIKE' | 'DISLIKE';
 
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
@@ -75,6 +77,8 @@ export interface PostDetail {
   authorId: number;
   authorName: string;
   likeCount: number;
+  dislikeCount: number;
+  reactionType: ReactionType | null;
   commentCount: number;
   viewCount: number;
   createdAt: string;

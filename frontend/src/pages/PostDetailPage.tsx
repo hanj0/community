@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { PostDetail, PostSummary, CommentData } from '../types';
-import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost, deletePost, toggleBookmark } from '../api/posts';
+import { fetchPostDetail, fetchComments, createComment, fetchHotPosts, fetchPosts, updatePost, deletePost, toggleBookmark, setPostReaction, deletePostReaction } from '../api/posts';
 import { useChannels } from '../hooks/useChannels';
+import { useReaction } from '../hooks/useReaction';
 import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
 import { rankColor } from '../utils/rank';
@@ -23,9 +24,16 @@ export default function PostDetailPage() {
   const [postLoading, setPostLoading] = useState(true);
   const [postError, setPostError] = useState<string | null>(null);
 
-  const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+  const { reaction, likeCount, dislikeCount, pending: reactionPending, react, reset: resetReaction } = useReaction({
+    initialReaction: null,
+    initialLikeCount: 0,
+    initialDislikeCount: 0,
+    onSet: type => setPostReaction(postId, type),
+    onCancel: () => deletePostReaction(postId),
+    isAuthorized: !!user,
+    onUnauthorized: () => window.dispatchEvent(new CustomEvent('auth:unauthorized')),
+  });
 
   const [isEditingPost, setIsEditingPost] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -52,9 +60,14 @@ export default function PostDetailPage() {
     setPostLoading(true);
     setPostError(null);
     fetchPostDetail(postId)
-      .then(p => { setPost(p); setLikeCount(p.likeCount); setBookmarked(p.isBookmarked ?? false); })
+      .then(p => {
+        setPost(p);
+        resetReaction({ reaction: p.reactionType, likeCount: p.likeCount, dislikeCount: p.dislikeCount });
+        setBookmarked(p.isBookmarked ?? false);
+      })
       .catch(e => setPostError(e.message))
       .finally(() => setPostLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postId]);
 
   const loadMoreComments = useCallback(async (nextPage: number) => {
@@ -108,11 +121,6 @@ export default function PostDetailPage() {
     } catch {
       // ignore
     }
-  };
-
-  const toggleLike = () => {
-    setLiked(v => !v);
-    setLikeCount(n => liked ? n - 1 : n + 1);
   };
 
   const handleStartEditPost = () => {
@@ -263,8 +271,19 @@ export default function PostDetailPage() {
 
           <div className="dtac">
             <div className="vg">
-              <button className={'vbtn2' + (liked ? ' lk' : '')} onClick={toggleLike}>
+              <button
+                className={'vbtn2' + (reaction === 'LIKE' ? ' lk' : '')}
+                onClick={() => react('LIKE')}
+                disabled={reactionPending}
+              >
                 ♥ 좋아요 {likeCount.toLocaleString()}
+              </button>
+              <button
+                className={'vbtn2' + (reaction === 'DISLIKE' ? ' dk' : '')}
+                onClick={() => react('DISLIKE')}
+                disabled={reactionPending}
+              >
+                👎 싫어요 {dislikeCount.toLocaleString()}
               </button>
               <button className={'vbtn2' + (bookmarked ? ' bk' : '')} onClick={() => { setBookmarked(v => !v); toggleBookmark(postId, !bookmarked).catch(() => setBookmarked(v => !v)); }}>
                 {bookmarked ? '★' : '☆'} 북마크

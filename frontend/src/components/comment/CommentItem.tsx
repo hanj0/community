@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import type { CommentData } from '../../types';
-import { fetchReplies, updateComment, deleteComment, createComment } from '../../api/posts';
+import type { CommentData, ReactionType } from '../../types';
+import { fetchReplies, updateComment, deleteComment, createComment, setCommentReaction, deleteCommentReaction } from '../../api/posts';
 import { getAvatarStyle } from '../../utils/avatar';
 import { formatRelativeTime } from '../../utils/time';
 import { useAuth } from '../../context/AuthContext';
+import { useReaction } from '../../hooks/useReaction';
 import CommentInput from './CommentInput';
 
 interface CommentItemProps {
@@ -19,10 +20,15 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   const [repliesLoaded, setRepliesLoaded] = useState(false);
   const [repliesLoading, setRepliesLoading] = useState(false);
   const [showInput, setShowInput] = useState(false);
-  const [likes, setLikes] = useState(comment.likes ?? 0);
-  const [dislikes, setDislikes] = useState(comment.dislikes ?? 0);
-  const [liked, setLiked] = useState(false);
-  const [disliked, setDisliked] = useState(false);
+  const { reaction, likeCount, dislikeCount, pending, react } = useReaction({
+    initialReaction: comment.reactionType,
+    initialLikeCount: comment.likeCount ?? 0,
+    initialDislikeCount: comment.dislikeCount ?? 0,
+    onSet: (type: ReactionType) => setCommentReaction(comment.id, type),
+    onCancel: () => deleteCommentReaction(comment.id),
+    isAuthorized: !!user,
+    onUnauthorized: () => window.dispatchEvent(new CustomEvent('auth:unauthorized')),
+  });
   const [content, setContent] = useState(comment.content);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState('');
@@ -66,16 +72,6 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   const author = comment.authorInfo?.username ?? '';
   const { av, ab, ac } = getAvatarStyle(author || '?');
 
-  const toggleLike = () => {
-    if (liked) { setLikes(l => l - 1); setLiked(false); }
-    else { setLikes(l => l + 1); setLiked(true); if (disliked) { setDislikes(d => d - 1); setDisliked(false); } }
-  };
-
-  const toggleDislike = () => {
-    if (disliked) { setDislikes(d => d - 1); setDisliked(false); }
-    else { setDislikes(d => d + 1); setDisliked(true); if (liked) { setLikes(l => l - 1); setLiked(false); } }
-  };
-
   const handleToggleReplies = async () => {
     if (!repliesLoaded) {
       setRepliesLoading(true);
@@ -117,8 +113,8 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
             </div>
           </div>
           <div className="cmacts">
-            <button className={'cmb' + (liked ? ' lk' : '')} onClick={toggleLike}>▲ {likes}</button>
-            <button className={'cmb' + (disliked ? ' dk' : '')} onClick={toggleDislike}>▼ {dislikes}</button>
+            <button className={'cmb' + (reaction === 'LIKE' ? ' lk' : '')} onClick={() => react('LIKE')} disabled={pending}>▲ {likeCount}</button>
+            <button className={'cmb' + (reaction === 'DISLIKE' ? ' dk' : '')} onClick={() => react('DISLIKE')} disabled={pending}>▼ {dislikeCount}</button>
             {!isReply && <button className="cmb" onClick={() => setShowInput(v => !v)}>답글</button>}
             {isCommentAuthor && !isEditing && (
               <>

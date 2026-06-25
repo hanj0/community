@@ -63,7 +63,7 @@ export default function PostDetailPage() {
       .then(p => {
         setPost(p);
         resetReaction({ reaction: p.reactionType, likeCount: p.likeCount, dislikeCount: p.dislikeCount });
-        setBookmarked(p.isBookmarked ?? false);
+        setBookmarked(p.bookmarked ?? false);
       })
       .catch(e => setPostError(e.message))
       .finally(() => setPostLoading(false));
@@ -285,7 +285,7 @@ export default function PostDetailPage() {
               >
                 👎 싫어요 {dislikeCount.toLocaleString()}
               </button>
-              <button className={'vbtn2' + (bookmarked ? ' bk' : '')} onClick={() => { setBookmarked(v => !v); toggleBookmark(postId, !bookmarked).catch(() => setBookmarked(v => !v)); }}>
+              <button className={'vbtn2' + (bookmarked ? ' bk' : '')} onClick={() => { toggleBookmark(postId, !bookmarked).then(ok => { if (ok) setBookmarked(v => !v); }).catch(() => {}); }}>
                 {bookmarked ? '★' : '☆'} 북마크
               </button>
             </div>

@@ -8,33 +8,26 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Table(
-        name = "post_reaction",
+        name = "bookmark",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_post_reaction_user_post",
+                name = "uk_bookmark_post_user",
                 columnNames = {"post_id", "user_id"}
         )
 )
-public class PostReaction extends BaseTimeEntity{
+public class Bookmark extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    @Enumerated(EnumType.STRING)
-    private ReactionType type;
 
-    public PostReaction(Post post, User user, ReactionType type) {
+    public Bookmark(Post post, User user) {
         this.post = post;
         this.user = user;
-        this.type = type;
-    }
-
-    public void changeType(ReactionType type) {
-        this.type = type;
     }
 }

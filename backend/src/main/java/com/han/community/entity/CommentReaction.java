@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-/// ddl-auto: none으로 바꾸면서 아래 애너테이션도 삭제하고 직접설정해야함
 @Table(
         name = "comment_reaction",
         uniqueConstraints = @UniqueConstraint(

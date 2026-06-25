@@ -11,7 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -27,6 +27,7 @@ public class UserService {
         return userRepository.findUserStats(userId);
     }
 
+    @Transactional
     public Page<PostDto.SummaryResponse> getMyPosts(Long userId, Pageable pageable) {
 
         pageable = PageRequest.of(
@@ -39,6 +40,7 @@ public class UserService {
                 .map(post -> PostDto.SummaryResponse.from(post));
     }
 
+    @Transactional
     public Page<UserDto.MyCommentResponse> getMyComments(Long userId, Pageable pageable) {
 
         pageable = PageRequest.of(
@@ -50,6 +52,7 @@ public class UserService {
         return commentRepository.findMyComments(userId, pageable);
     }
 
+    @Transactional
     public Page<PostDto.SummaryResponse> getMyBookmarks(Long userId, Pageable pageable) {
 
         pageable = PageRequest.of(
@@ -58,6 +61,7 @@ public class UserService {
                 Sort.by("createdAt").descending()
         );
 
-        return null;//postRepository.findUserBookmarks(userId, pageable);
+        return postRepository.findUserBookmarks(userId, pageable)
+                .map(post -> PostDto.SummaryResponse.from(post));
     }
 }

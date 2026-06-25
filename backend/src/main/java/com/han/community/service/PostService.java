@@ -3,10 +3,7 @@ package com.han.community.service;
 import com.han.community.dto.ChannelDto;
 import com.han.community.dto.PostDto;
 import com.han.community.dto.UserDto;
-import com.han.community.entity.Channel;
-import com.han.community.entity.Post;
-import com.han.community.entity.PostReaction;
-import com.han.community.entity.User;
+import com.han.community.entity.*;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.*;
@@ -31,6 +28,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final PostReactionRepository postReactionRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     private static final int HOT_THRESHOLD = 20;
     private static final int PAGE_SIZE_LIMIT = 100;
@@ -63,6 +61,9 @@ public class PostService {
 /// reaction을 post조회할때 left join으로 한번에 조회하는 방법도 생각
         PostReaction postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
                 .orElse(null);
+        boolean isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
+
+        bookmarkRepository.existsById(3L);
 
         if(!alreadyViewed) {
             postRepository.incrementViewCount(postId);
@@ -79,7 +80,7 @@ public class PostService {
                 .dislikeCount(post.getDislikeCount())
                 .commentCount(post.getCommentCount())
                 .reactionType(postReaction == null ? null : postReaction.getType())
-                .bookmarked(false)
+                .bookmarked(isBookmarked)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();

@@ -80,20 +80,6 @@ public class PostDto {
 
         private boolean canEdit;
         private boolean canDelete;
-
-        public static DetailResponse from(Post post) {
-            return DetailResponse.builder()
-                    .id(post.getId())
-                    .title(post.getTitle())
-                    .content(post.getContent())
-                    .viewCount(post.getViewCount())
-                    .likeCount(post.getLikeCount())
-                    .dislikeCount(post.getDislikeCount())
-                    .commentCount(post.getCommentCount())
-                    .createdAt(post.getCreatedAt())
-                    .updatedAt(post.getUpdatedAt())
-                    .build();
-        }
     }
 
     public static class TitleResponse {

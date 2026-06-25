@@ -83,7 +83,7 @@ export interface PostDetail {
   viewCount: number;
   createdAt: string;
   isPinned?: boolean;
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
 }
 
 export interface MyComment {

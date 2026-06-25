@@ -93,4 +93,13 @@ ORDER BY p.likeCount DESC
     @Modifying
     @Query("UPDATE Post p SET p.dislikeCount = p.dislikeCount + 1 WHERE p.id = :id")
     void incrementDislikeCount(@Param("id") Long id);
+
+
+    @Query("""
+SELECT p
+FROM Bookmark b
+JOIN b.post p
+WHERE b.user.id = :userId
+""")
+    Page<Post> findUserBookmarks(@Param("userId") Long userId, Pageable pageable);
 }

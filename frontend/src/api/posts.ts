@@ -61,7 +61,7 @@ interface RawPostDetail {
   commentCount: number;
   createdAt: string;
   isPinned?: boolean;
-  isBookmarked?: boolean;
+  bookmarked?: boolean;
 }
 
 export async function fetchPostDetail(id: number): Promise<PostDetail> {
@@ -132,12 +132,13 @@ export async function deleteCommentReaction(commentId: number): Promise<void> {
   }
 }
 
-export async function toggleBookmark(postId: number, add: boolean): Promise<void> {
+export async function toggleBookmark(postId: number, add: boolean): Promise<boolean> {
   const res = await fetch(`/api/posts/${postId}/bookmark`, {
-    method: add ? 'POST' : 'DELETE',
+    method: add ? 'PUT' : 'DELETE',
     credentials: 'include',
   });
-  await handleResponse<unknown>(res);
+  if (res.status === 401) window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+  return res.status === 204;
 }
 
 export async function fetchMyStats(): Promise<{ postCount: number; commentCount: number; createdAt: string }> {

@@ -40,7 +40,7 @@ public class PostService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHANNEL_NOT_FOUND));
         User user = userRepository.getReferenceById(userId);
 
-        Post post = new Post.Builder()
+        Post post = Post.builder()
                 .channel(channel)
                 .user(user)
                 .title(requestDto.getTitle())

@@ -38,13 +38,16 @@ public class Post extends BaseSoftDeleteEntity {
     }
 
 
-
     // builder 패턴
     private Post(Builder builder) {
         this.channel = builder.channel;
         this.user = builder.user;
         this.title = builder.title;
         this.content = builder.content;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static class Builder {

@@ -25,10 +25,8 @@ public class BookmarkService {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
-        User user = userRepository.getReferenceById(userId);
 
-        Bookmark bookmark = new Bookmark(post, user);
-        bookmarkRepository.save(bookmark);
+        bookmarkRepository.upsertBookmark(postId, userId);
     }
 
     @Transactional

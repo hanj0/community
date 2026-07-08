@@ -76,21 +76,17 @@ export async function fetchPostDetail(id: number): Promise<PostDetail> {
   };
 }
 
-interface PostReactionResponse {
-  postId: number;
-  type: ReactionType;
-  likeCount: number;
-  dislikeCount: number;
-}
-
-export async function setPostReaction(postId: number, type: ReactionType): Promise<PostReactionResponse> {
+export async function setPostReaction(postId: number, type: ReactionType): Promise<void> {
   const res = await fetch(`/api/posts/${postId}/reaction`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ type }),
   });
-  return handleResponse<PostReactionResponse>(res);
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    throw new Error('반응을 등록할 수 없습니다.');
+  }
 }
 
 export async function deletePostReaction(postId: number): Promise<void> {
@@ -104,21 +100,17 @@ export async function deletePostReaction(postId: number): Promise<void> {
   }
 }
 
-interface CommentReactionResponse {
-  commentId: number;
-  type: ReactionType;
-  likeCount: number;
-  dislikeCount: number;
-}
-
-export async function setCommentReaction(commentId: number, type: ReactionType): Promise<CommentReactionResponse> {
+export async function setCommentReaction(commentId: number, type: ReactionType): Promise<void> {
   const res = await fetch(`/api/comments/${commentId}/reaction`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ type }),
   });
-  return handleResponse<CommentReactionResponse>(res);
+  if (!res.ok) {
+    if (res.status === 401) window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+    throw new Error('반응을 등록할 수 없습니다.');
+  }
 }
 
 export async function deleteCommentReaction(commentId: number): Promise<void> {

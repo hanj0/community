@@ -29,7 +29,7 @@ WHERE c.parentComment.id = :parentId
 
     @Modifying
     @Query("UPDATE Comment c SET c.replyCount = c.replyCount + 1 WHERE c.id = :parentId")
-    void increaseReplyCount(@Param("parentId")Long parentId);
+    void incrementReplyCount(@Param("parentId")Long parentId);
 
     @Modifying
     void deleteByPostId(Long postId);
@@ -59,7 +59,6 @@ WHERE c.user.id = :userId
     @Modifying
     @Query("UPDATE Comment c SET c.dislikeCount = c.dislikeCount + 1 WHERE c.id = :commentId")
     void incrementDislikeCount(@Param("commentId") Long commentId);
-
 
     @Modifying
     @Query("UPDATE Comment c SET c.likeCount = c.likeCount - 1 WHERE c.id = :commentId")

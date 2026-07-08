@@ -33,8 +33,4 @@ public class PostReaction extends BaseTimeEntity{
         this.user = user;
         this.type = type;
     }
-
-    public void changeType(ReactionType type) {
-        this.type = type;
-    }
 }

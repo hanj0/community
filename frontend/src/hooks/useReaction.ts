@@ -1,18 +1,12 @@
 import { useState } from 'react';
 import type { ReactionType } from '../types';
 
-export interface ReactionResult {
-  type: ReactionType;
-  likeCount: number;
-  dislikeCount: number;
-}
-
 interface UseReactionOptions {
   initialReaction: ReactionType | null;
   initialLikeCount: number;
   initialDislikeCount: number;
-  /** 좋아요/싫어요 설정 요청. 서버가 보정된 카운트를 돌려준다. */
-  onSet: (type: ReactionType) => Promise<ReactionResult>;
+  /** 좋아요/싫어요 설정 요청. 성공 여부만 판단하고 카운트는 프론트에서 선반영한다. */
+  onSet: (type: ReactionType) => Promise<void>;
   /** 동일한 반응을 다시 눌러 취소할 때의 요청. */
   onCancel: () => Promise<void>;
   /** 비로그인 등 권한이 없을 때 호출. */
@@ -23,7 +17,7 @@ interface UseReactionOptions {
 
 /**
  * 좋아요/싫어요 낙관적 업데이트 공용 훅.
- * 선반영 → 서버 요청 → 성공 시 서버 값 보정 → 실패 시 롤백.
+ * 선반영 → 서버 요청 → 실패 시 롤백. (카운트는 프론트에서 ±1로 계산, 새로고침 시 서버 값으로 동기화)
  */
 export function useReaction(opts: UseReactionOptions) {
   const [reaction, setReaction] = useState<ReactionType | null>(opts.initialReaction);
@@ -58,10 +52,7 @@ export function useReaction(opts: UseReactionOptions) {
       if (isCancel) {
         await opts.onCancel();
       } else {
-        const res = await opts.onSet(type);
-        setLikeCount(res.likeCount);
-        setDislikeCount(res.dislikeCount);
-        setReaction(res.type);
+        await opts.onSet(type);
       }
     } catch {
       // 롤백

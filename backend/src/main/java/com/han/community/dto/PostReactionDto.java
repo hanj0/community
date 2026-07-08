@@ -8,11 +8,4 @@ public class PostReactionDto {
     public record Request(
             @NotNull ReactionType type
     ) {}
-
-    public record Response(
-            Long postId,
-            ReactionType type,
-            long likeCount,
-            long dislikeCount
-    ) {}
 }

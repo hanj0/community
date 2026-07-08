@@ -108,7 +108,7 @@ public class CommentService {
         Comment parentComment = null;
         if(parentId != null) {
             parentComment = commentRepository.getReferenceById(parentId);
-            commentRepository.increaseReplyCount(parentId);
+            commentRepository.incrementReplyCount(parentId);
         }
 
         postRepository.incrementCommentCount(postId);

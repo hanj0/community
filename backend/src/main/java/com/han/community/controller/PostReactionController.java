@@ -18,16 +18,16 @@ public class PostReactionController {
     private final PostReactionService postReactionService;
 
     @PutMapping("/{postId}/reaction")
-    public ResponseEntity<SuccessResponse<PostReactionDto.Response>> putReaction(
+    public ResponseEntity<SuccessResponse<Void>> putReaction(
             @PathVariable Long postId,
             @RequestBody PostReactionDto.Request requestDto,
             @AuthenticationPrincipal User user) {
 
-        PostReactionDto.Response response = postReactionService.reactToPost(postId, user.getId(), requestDto);
+        postReactionService.reactToPost(postId, user.getId(), requestDto);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(SuccessResponse.of(response));
+                .build();
     }
 
     @DeleteMapping("/{postId}/reaction")

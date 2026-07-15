@@ -2,7 +2,7 @@ package com.han.community.controller;
 
 import com.han.community.dto.AuthDto;
 import com.han.community.entity.User;
-import com.han.community.global.response.SuccessResponse;
+import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

@@ -1,7 +1,7 @@
 package com.han.community.controller;
 
 import com.han.community.dto.ChannelDto;
-import com.han.community.global.response.SuccessResponse;
+import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.ChannelService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

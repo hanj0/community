@@ -2,16 +2,16 @@ package com.han.community.service;
 
 import com.han.community.dto.PostReactionDto;
 import com.han.community.entity.Post;
-import com.han.community.entity.PostReaction;
 import com.han.community.entity.ReactionType;
-import com.han.community.entity.User;
+import com.han.community.entity.TargetType;
+import com.han.community.event.ReactionEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.PostReactionRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,14 +22,15 @@ public class PostReactionService {
 
     private final PostReactionRepository postReactionRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public void reactToPost(Long postId, Long userId, PostReactionDto.Request requestDto) {
 
-        if(!postRepository.existsById(postId)) {
-            throw new BusinessException(ErrorCode.POST_NOT_FOUND);
-        }
+        boolean shouldNotify = false;
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
         ReactionType newType = requestDto.type();
         ReactionType oldType = (newType == ReactionType.LIKE) ? ReactionType.DISLIKE : ReactionType.LIKE;
@@ -38,13 +39,23 @@ public class PostReactionService {
         if(updated > 0) {
             decrementCount(postId, oldType);
             incrementCount(postId, newType);
-            return;
+            shouldNotify = newType == ReactionType.LIKE;
         }
+        else {
+            int inserted = postReactionRepository.insertTypeIfNotExists(postId, userId, newType.name());
+            if (inserted > 0) {
+                incrementCount(postId, newType);
+                shouldNotify = newType == ReactionType.LIKE;
+            }
+        }
+        if(!shouldNotify) return;
 
-        int inserted = postReactionRepository.insertTypeIfNotExists(postId, userId, newType.name());
-        if(inserted > 0) {
-            incrementCount(postId, newType);
-        }
+        Long authorId = post.getUser().getId();
+        if(authorId.equals(userId)) return;
+
+        publisher.publishEvent(new ReactionEvent(
+                userId, TargetType.POST, postId, postId, authorId
+        ));
     }
 
     @Transactional

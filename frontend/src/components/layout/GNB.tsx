@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBell from './NotificationBell';
 
 const NAV_ITEMS = [
   { path: '/',        label: '홈' },
@@ -41,7 +42,7 @@ export default function GNB() {
         <div className="gnb-r">
           {user ? (
             <>
-              <div className="nw">알림<span className="ndot" /></div>
+              <NotificationBell />
               <div className="gnb-user" onClick={() => navigate('/me')}>
                 <div className="av">{user.username.charAt(0).toUpperCase()}</div>
                 <span className="gnb-username">{user.username}</span>

@@ -1,4 +1,4 @@
-package com.han.community.global.response;
+package com.han.community.dto.common;
 
 import java.time.Instant;
 import java.util.List;

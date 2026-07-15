@@ -1,10 +1,13 @@
-package com.han.community.global.response;
+package com.han.community.dto.common;
 
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-public record PageResponse<T>(List<T> data, PageMeta meta) {
+public record PageResponse<T>(
+        List<T> data,
+        PageMeta meta
+) {
 
     public record PageMeta(
             int page,

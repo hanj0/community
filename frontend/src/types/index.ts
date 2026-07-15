@@ -46,6 +46,29 @@ export interface CommentData {
 
 export type ReactionType = 'LIKE' | 'DISLIKE';
 
+export interface CursorResponse<T> {
+  data: T[];
+  nextCursor: string | null;
+  hasNext: boolean;
+}
+
+export type NotificationType = 'REACTION' | 'COMMENT';
+export type NotificationTargetType = 'POST' | 'COMMENT';
+
+export interface NotificationItem {
+  id: number;
+  type: NotificationType;
+  targetType: NotificationTargetType;
+  targetId: number;
+  rootPostId: number;
+  lastActorName: string;
+  actorCount: number;
+  isRead: boolean;
+  updatedAt: string;
+  /** 게시글/댓글 미리보기. 서버 추가 예정이라 옵셔널. */
+  targetPreview?: string;
+}
+
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
 export type PeriodType = '24h' | '7d' | '30d';

@@ -1,13 +1,12 @@
 package com.han.community.repository;
 
-import com.han.community.dto.PostDto;
 import com.han.community.dto.UserDto;
 import com.han.community.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.awt.print.Pageable;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -24,5 +23,5 @@ SELECT new com.han.community.dto.UserDto$StatsResponse(
 """)
     UserDto.StatsResponse findUserStats(@Param("userId") Long userId);
 
-
+    List<User> findAllById(Iterable<Long> ids);
 }

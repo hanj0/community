@@ -12,9 +12,9 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Table(name = "users")
 @Getter
 @NoArgsConstructor
+@Table(name = "users")
 public class User extends BaseSoftDeleteEntity implements UserDetails {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

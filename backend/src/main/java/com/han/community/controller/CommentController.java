@@ -2,8 +2,8 @@ package com.han.community.controller;
 
 import com.han.community.dto.CommentDto;
 import com.han.community.entity.User;
-import com.han.community.global.response.PageResponse;
-import com.han.community.global.response.SuccessResponse;
+import com.han.community.dto.common.PageResponse;
+import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.CommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

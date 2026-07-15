@@ -2,7 +2,7 @@ package com.han.community.controller;
 
 import com.han.community.dto.PostReactionDto;
 import com.han.community.entity.User;
-import com.han.community.global.response.SuccessResponse;
+import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.PostReactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

@@ -25,13 +25,13 @@ public class UserDto {
 
     @Getter
     @Builder
-    public static class authorResponse {
+    public static class AuthorResponse {
 
         private Long id;
         private String username;
 
-        public static authorResponse from(User user) {
-            return authorResponse.builder()
+        public static AuthorResponse from(User user) {
+            return AuthorResponse.builder()
                     .id(user.getId())
                     .username(user.getUsername())
                     .build();

@@ -52,7 +52,7 @@ public class CommentService {
                 c -> CommentDto.Response.builder()
                         .id(c.getId())
                         .content(c.getContent())
-                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
+                        .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
                         .likeCount(c.getLikeCount())
                         .dislikeCount(c.getDislikeCount())
                         .replyCount(c.getReplyCount())
@@ -83,7 +83,7 @@ public class CommentService {
 
         return replies.map(
                 c -> CommentDto.Response.builder()
-                        .authorInfo(UserDto.authorResponse.from(c.getUser()))
+                        .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
                         .parentId(c.getParentComment().getId())
@@ -126,7 +126,7 @@ public class CommentService {
                 .id(savedComment.getId())
                 .content(savedComment.getContent())
                 .parentId(parentId)
-                .authorInfo(UserDto.authorResponse.from(user))
+                .authorInfo(UserDto.AuthorResponse.from(user))
                 .reactionType(null)
                 .replyCount(savedComment.getReplyCount())
                 .likeCount(savedComment.getLikeCount())

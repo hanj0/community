@@ -28,7 +28,7 @@ public class CommentDto {
         private Long id;
         private String content;
         private Long parentId;
-        private UserDto.authorResponse authorInfo;
+        private UserDto.AuthorResponse authorInfo;
         private int likeCount;
         private int dislikeCount;
         private int replyCount;

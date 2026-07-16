@@ -58,13 +58,14 @@ public class PostService {
         Post post = postRepository.findByIdWithDetails(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
+        PostReaction postReaction = null;
+        boolean isBookmarked = false;
+        if(userId != null) {
 /// reaction을 post조회할때 left join으로 한번에 조회하는 방법도 생각
-        PostReaction postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
-                .orElse(null);
-        boolean isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
-
-        bookmarkRepository.existsById(3L);
-
+            postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
+                    .orElse(null);
+            isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
+        }
         if(!alreadyViewed) {
             postRepository.incrementViewCount(postId);
         }
@@ -73,7 +74,7 @@ public class PostService {
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
-                .authorInfo(UserDto.authorResponse.from(post.getUser()))
+                .authorInfo(UserDto.AuthorResponse.from(post.getUser()))
                 .channelInfo(ChannelDto.Response.from(post.getChannel()))
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())

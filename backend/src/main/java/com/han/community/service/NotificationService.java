@@ -12,6 +12,7 @@ import com.han.community.repository.NotificationRepository;
 import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ public class NotificationService {
     private final NotificationActorRepository notificationActorRepository;
     private final UserRepository userRepository;
 
-    private static final int NOTIFICATION_SIZE = 10;
+    private static final int NOTIFICATION_MAX_SIZE = 20;
 
     @Transactional
     public NotificationDto.UnreadCountResponse getUnreadNotificationCount(Long recipientId) {
@@ -39,17 +40,15 @@ public class NotificationService {
     }
 
     @Transactional
-    public CursorResponse<NotificationDto.Response> getNotifications(Long recipientId, String cursor) {
+    public CursorResponse<NotificationDto.Response> getNotifications(Long recipientId, String cursor, int size) {
 
-        int size = NOTIFICATION_SIZE;
+        size = Math.min(Math.max(size, 1), NOTIFICATION_MAX_SIZE);
         NotificationCursor c = NotificationCursor.parse(cursor);
+        Pageable pageable = PageRequest.of(0, size + 1);
 
-        List<Notification> notifications = notificationRepository.findByCursor(
-                recipientId,
-                c == null ? null : c.updatedAt(),
-                c == null ? null : c.id(),
-                PageRequest.of(0, size + 1)
-        );
+        List<Notification> notifications = c == null
+                ? notificationRepository.findFirstPage(recipientId, pageable)
+                : notificationRepository.findNextPageByCursor(recipientId, c.updatedAt(), c.id(), pageable);
 
         boolean hasNext = notifications.size() > size;
         List<Notification> page = hasNext ? notifications.subList(0, size) : notifications;
@@ -62,10 +61,13 @@ public class NotificationService {
         List<NotificationDto.Response> data = page.stream()
                 .map(n -> NotificationDto.Response.from(n, names.get(n.getLastActorId()))).toList();
 
-        Notification n = page.getLast();
-        String nextCursor = hasNext ? new NotificationCursor(n.getUpdatedAt(), n.getId()).encode() : null;
+        String nextCursor = null;
+        if(hasNext) {
+            Notification n = page.getLast();
+            nextCursor = new NotificationCursor(n.getUpdatedAt(), n.getId()).encode();
+        }
 
-        return new CursorResponse<>(data, nextCursor,hasNext);
+        return new CursorResponse<>(data, nextCursor, hasNext);
     }
 
     @Transactional

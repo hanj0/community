@@ -1,6 +1,6 @@
 package com.han.community.service;
 
-import com.han.community.common.IntegrationTestSupport;
+import com.han.community.common.ConcurrencyTestSupport;
 import com.han.community.dto.PostReactionDto;
 import com.han.community.entity.*;
 import com.han.community.repository.ChannelRepository;
@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PostReactionConcurrencyTest extends IntegrationTestSupport {
+public class PostReactionConcurrencyTest extends ConcurrencyTestSupport {
 
     @Autowired PostReactionRepository postReactionRepository;
     @Autowired UserRepository userRepository;

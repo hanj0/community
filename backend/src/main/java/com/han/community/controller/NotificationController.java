@@ -32,9 +32,10 @@ public class NotificationController {
     @GetMapping
     public ResponseEntity<CursorResponse<NotificationDto.Response>> getNotifications(
             @AuthenticationPrincipal User user,
-            @RequestParam(required = false) String cursor) {
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "10") int size) {
 
-        CursorResponse<NotificationDto.Response> response = notificationService.getNotifications(user.getId(), cursor);
+        CursorResponse<NotificationDto.Response> response = notificationService.getNotifications(user.getId(), cursor, size);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

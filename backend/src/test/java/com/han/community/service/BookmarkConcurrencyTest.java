@@ -1,6 +1,6 @@
 package com.han.community.service;
 
-import com.han.community.common.IntegrationTestSupport;
+import com.han.community.common.ConcurrencyTestSupport;
 import com.han.community.entity.Channel;
 import com.han.community.entity.Post;
 import com.han.community.entity.Role;
@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BookmarkConcurrencyTest extends IntegrationTestSupport {
+public class BookmarkConcurrencyTest extends ConcurrencyTestSupport {
 
     @Autowired BookmarkService bookmarkService;
     @Autowired BookmarkRepository bookmarkRepository;

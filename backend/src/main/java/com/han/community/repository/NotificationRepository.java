@@ -41,12 +41,18 @@ WHERE n.id = :notificationId
     @Query("""
 SELECT n FROM Notification n
 WHERE n.recipientId = :recipientId
-    AND (CAST(:cursorUpdatedAt AS timestamp) IS NULL
-        OR n.updatedAt < :cursorUpdatedAt
+ORDER BY n.updatedAt DESC, n.id DESC
+""")
+    List<Notification> findFirstPage(@Param("recipientId")Long recipientId, Pageable pageable);
+
+    @Query("""
+SELECT n FROM Notification n
+WHERE n.recipientId = :recipientId
+    AND (n.updatedAt < :cursorUpdatedAt
         OR (n.updatedAt = :cursorUpdatedAt AND n.id < :cursorId))
 ORDER BY n.updatedAt DESC, n.id DESC
 """)
-    List<Notification> findByCursor(@Param("recipientId")Long recipientId, @Param("cursorUpdatedAt")LocalDateTime cursorUpdatedAt, @Param("cursorId")Long cursorId, Pageable pageable);
+    List<Notification> findNextPageByCursor(@Param("recipientId")Long recipientId, @Param("cursorUpdatedAt")LocalDateTime cursorUpdatedAt, @Param("cursorId")Long cursorId, Pageable pageable);
 
     @Modifying
     @Query("""

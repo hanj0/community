@@ -18,16 +18,16 @@ public class CommentReactionController {
     private CommentReactionService commentReactionService;
 
     @PutMapping("/{commentId}/reaction")
-    public ResponseEntity<SuccessResponse<CommentReactionDto.Response>> putReaction(
+    public ResponseEntity<SuccessResponse<Void>> putReaction(
             @PathVariable Long commentId,
             @RequestBody CommentReactionDto.Request requestDto,
             @AuthenticationPrincipal User user) {
 
-        CommentReactionDto.Response response = commentReactionService.reactToComment(commentId, user.getId(), requestDto);
+        commentReactionService.reactToComment(commentId, user.getId(), requestDto);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(SuccessResponse.of(response));
+                .build();
     }
 
     @DeleteMapping("/{commentId}/reaction")

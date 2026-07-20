@@ -1,10 +1,8 @@
 package com.han.community.service;
 
 import com.han.community.dto.CommentReactionDto;
-import com.han.community.entity.Comment;
-import com.han.community.entity.CommentReaction;
-import com.han.community.entity.ReactionType;
-import com.han.community.entity.User;
+import com.han.community.entity.*;
+import com.han.community.event.ReactionEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.AdvisoryLockRepository;
@@ -12,6 +10,7 @@ import com.han.community.repository.CommentReactionRepository;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,28 +22,23 @@ public class CommentReactionService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final AdvisoryLockRepository advisoryLockRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
-    public CommentReactionDto.Response reactToComment(Long commentId, Long userId, CommentReactionDto.Request requestDto) {
+    public void reactToComment(Long commentId, Long userId, CommentReactionDto.Request requestDto) {
 
         advisoryLockRepository.lock(commentId, userId);
 
         User user = userRepository.getReferenceById(userId);
-        CommentReaction reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId)
-                .orElse(null);
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+        CommentReaction reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId)
+                .orElse(null);
 
         ReactionType oldType = reaction == null ? null : reaction.getType();
         ReactionType newType = requestDto.type();
-        if(oldType == newType) {
-            return new CommentReactionDto.Response(
-                    commentId,
-                    newType,
-                    comment.getLikeCount(),
-                    comment.getDislikeCount()
-            );
-        }
+
+        if(oldType == newType) return;
 
         if(reaction == null) {
             commentReactionRepository.save(new CommentReaction(comment, user, newType));
@@ -52,19 +46,21 @@ public class CommentReactionService {
             reaction.changeType(newType);
         }
 
-        int likeCount = comment.getLikeCount();
-        int dislikeCount = comment.getDislikeCount();
-        if(oldType == ReactionType.LIKE) { commentRepository.decrementLikeCount(commentId); likeCount--; }
-        else if(oldType == ReactionType.DISLIKE) { commentRepository.decrementDislikeCount(commentId); dislikeCount--; }
+        if(oldType == ReactionType.LIKE) commentRepository.decrementLikeCount(commentId);
+        else if(oldType == ReactionType.DISLIKE) commentRepository.decrementDislikeCount(commentId);
+        if(newType == ReactionType.LIKE) commentRepository.incrementLikeCount(commentId);
+        else if(newType == ReactionType.DISLIKE) commentRepository.incrementDislikeCount(commentId);
 
-        if(newType == ReactionType.LIKE) { commentRepository.incrementLikeCount(commentId); likeCount++; }
-        else if(newType == ReactionType.DISLIKE) { commentRepository.incrementDislikeCount(commentId); dislikeCount++; }
+        if(newType != ReactionType.LIKE) return;
 
-        return new CommentReactionDto.Response(
-                commentId,
-                newType,
-                likeCount,
-                dislikeCount
+        publisher.publishEvent(
+                new ReactionEvent(
+                        userId,
+                        TargetType.COMMENT,
+                        commentId,
+                        comment.getPost().getId(),
+                        comment.getUser().getId()
+                )
         );
     }
 

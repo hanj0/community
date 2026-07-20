@@ -99,7 +99,7 @@ public class NotificationService {
         else updateGroup(notification.get().getId(), actorId);
     }
 
-    /// DataIntegrityViolationException 발생가능
+    // todo: DataIntegrityViolationException 발생가능 > 빈분리를 하든, insertIgnore을 하든 해야함
     private void createNewGroup(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId) {
 
         Notification notification = notificationRepository.save(

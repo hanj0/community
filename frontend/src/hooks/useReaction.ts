@@ -16,8 +16,9 @@ interface UseReactionOptions {
 }
 
 /**
- * 좋아요/싫어요 낙관적 업데이트 공용 훅.
- * 선반영 → 서버 요청 → 실패 시 롤백. (카운트는 프론트에서 ±1로 계산, 새로고침 시 서버 값으로 동기화)
+ * 좋아요/싫어요 공용 훅 (비관적 반영).
+ * 서버 요청 → 성공한 뒤에만 반영. 실패하면 아무것도 바꾸지 않는다.
+ * (카운트는 프론트에서 ±1로 계산, 새로고침 시 서버 값으로 동기화)
  */
 export function useReaction(opts: UseReactionOptions) {
   const [reaction, setReaction] = useState<ReactionType | null>(opts.initialReaction);
@@ -39,13 +40,8 @@ export function useReaction(opts: UseReactionOptions) {
       return;
     }
 
-    const prev = { reaction, likeCount, dislikeCount };
+    const prevReaction = reaction;
     const isCancel = reaction === type;
-
-    // 낙관적 선반영
-    setReaction(isCancel ? null : type);
-    setLikeCount(n => n - (prev.reaction === 'LIKE' ? 1 : 0) + (!isCancel && type === 'LIKE' ? 1 : 0));
-    setDislikeCount(n => n - (prev.reaction === 'DISLIKE' ? 1 : 0) + (!isCancel && type === 'DISLIKE' ? 1 : 0));
 
     setPending(true);
     try {
@@ -54,11 +50,12 @@ export function useReaction(opts: UseReactionOptions) {
       } else {
         await opts.onSet(type);
       }
+      // 성공한 뒤에만 반영. 실패하면 catch로 빠져 아무것도 바뀌지 않는다.
+      setReaction(isCancel ? null : type);
+      setLikeCount(n => n - (prevReaction === 'LIKE' ? 1 : 0) + (!isCancel && type === 'LIKE' ? 1 : 0));
+      setDislikeCount(n => n - (prevReaction === 'DISLIKE' ? 1 : 0) + (!isCancel && type === 'DISLIKE' ? 1 : 0));
     } catch {
-      // 롤백
-      setReaction(prev.reaction);
-      setLikeCount(prev.likeCount);
-      setDislikeCount(prev.dislikeCount);
+      // 실패: 반영하지 않음
     } finally {
       setPending(false);
     }

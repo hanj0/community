@@ -11,7 +11,7 @@ const POLL_INTERVAL = 60_000;
 
 /**
  * 알림 상태 관리 훅. (로그인 사용자에게만 마운트되는 컴포넌트에서 사용)
- * - unreadCount: 마운트 시 + 60초 주기로 폴링
+ * - unreadCount: 마운트 시 + 60초 주기로 폴링 (탭이 숨겨지면 중지, 복귀 시 즉시 갱신 후 재개)
  * - items: 커서 페이징으로 append
  * - markRead / markAllRead: 낙관적 선반영 후 서버 요청, 실패 시 카운트만 재동기화
  */
@@ -33,9 +33,38 @@ export function useNotifications() {
   }, []);
 
   useEffect(() => {
-    refreshCount();
-    const timer = setInterval(refreshCount, POLL_INTERVAL);
-    return () => clearInterval(timer);
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (timer != null) return;
+      timer = setInterval(refreshCount, POLL_INTERVAL);
+    };
+    const stop = () => {
+      if (timer == null) return;
+      clearInterval(timer);
+      timer = null;
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop(); // 탭이 안 보이면 폴링 중지
+      } else {
+        refreshCount(); // 복귀 시 다음 주기를 기다리지 않고 즉시 갱신
+        start();
+      }
+    };
+
+    // 초기: 보이는 상태면 즉시 갱신 + 폴링 시작
+    if (!document.hidden) {
+      refreshCount();
+      start();
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      stop();
+    };
   }, [refreshCount]);
 
   /** 패널 최초 오픈 시 1페이지 로드 (이미 로드했으면 스킵) */

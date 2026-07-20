@@ -7,6 +7,7 @@ import com.han.community.entity.ReactionType;
 import com.han.community.entity.User;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
+import com.han.community.repository.AdvisoryLockRepository;
 import com.han.community.repository.CommentReactionRepository;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.UserRepository;
@@ -21,15 +22,18 @@ public class CommentReactionService {
     private final CommentReactionRepository commentReactionRepository;
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final AdvisoryLockRepository advisoryLockRepository;
 
     @Transactional
     public CommentReactionDto.Response reactToComment(Long commentId, Long userId, CommentReactionDto.Request requestDto) {
 
+        advisoryLockRepository.lock(commentId, userId);
+
         User user = userRepository.getReferenceById(userId);
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
         CommentReaction reaction = commentReactionRepository.findByCommentIdAndUserId(commentId, userId)
                 .orElse(null);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
 
         ReactionType oldType = reaction == null ? null : reaction.getType();
         ReactionType newType = requestDto.type();

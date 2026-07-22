@@ -3,6 +3,7 @@ package com.han.community.service;
 import com.han.community.dto.CommentDto;
 import com.han.community.dto.UserDto;
 import com.han.community.entity.*;
+import com.han.community.event.NotificationEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.CommentReactionRepository;
@@ -11,6 +12,7 @@ import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.Nullable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final PostRepository postRepository;
     private final CommentReactionRepository commentReactionRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public Page<CommentDto.Response> getComments(Long postId, @Nullable Long userId, Pageable pageable) {
@@ -107,7 +110,8 @@ public class CommentService {
         Long parentId = requestDto.getParentId();
         Comment parentComment = null;
         if(parentId != null) {
-            parentComment = commentRepository.getReferenceById(parentId);
+            parentComment = commentRepository.findById(parentId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
             commentRepository.incrementReplyCount(parentId);
         }
 
@@ -121,6 +125,23 @@ public class CommentService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
+
+        // todo: 한번에 가져오는게 성능이 좋으면 post조회할때 join해서 가져오게
+        boolean shouldNotify = parentId == null
+                ? !userId.equals(post.getUser().getId())
+                : !userId.equals(parentComment.getUser().getId());
+
+        if(shouldNotify) {
+            publisher.publishEvent(new NotificationEvent(
+                    userId,
+                    parentId == null ? TargetType.POST : TargetType.COMMENT,
+                    parentId == null ? postId : parentComment.getId(),
+                    postId,
+                    parentId == null ? post.getUser().getId() : parentComment.getUser().getId(),
+                    NotificationType.COMMENT,
+                    savedComment.getContent()
+            ));
+        }
 
         return CommentDto.Response.builder()
                 .id(savedComment.getId())

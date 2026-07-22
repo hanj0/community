@@ -1,15 +1,15 @@
 package com.han.community.service;
 
 import com.han.community.dto.PostReactionDto;
+import com.han.community.entity.NotificationType;
 import com.han.community.entity.Post;
 import com.han.community.entity.ReactionType;
 import com.han.community.entity.TargetType;
-import com.han.community.event.ReactionEvent;
+import com.han.community.event.NotificationEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.PostReactionRepository;
 import com.han.community.repository.PostRepository;
-import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -53,8 +53,8 @@ public class PostReactionService {
         Long authorId = post.getUser().getId();
         if(authorId.equals(userId)) return;
 
-        publisher.publishEvent(new ReactionEvent(
-                userId, TargetType.POST, postId, postId, authorId
+        publisher.publishEvent(new NotificationEvent(
+                userId, TargetType.POST, postId, postId, authorId, NotificationType.REACTION, post.getContent()
         ));
     }
 

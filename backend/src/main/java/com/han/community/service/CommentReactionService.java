@@ -2,7 +2,7 @@ package com.han.community.service;
 
 import com.han.community.dto.CommentReactionDto;
 import com.han.community.entity.*;
-import com.han.community.event.ReactionEvent;
+import com.han.community.event.NotificationEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.AdvisoryLockRepository;
@@ -54,12 +54,14 @@ public class CommentReactionService {
         if(newType != ReactionType.LIKE) return;
 
         publisher.publishEvent(
-                new ReactionEvent(
+                new NotificationEvent(
                         userId,
                         TargetType.COMMENT,
                         commentId,
                         comment.getPost().getId(),
-                        comment.getUser().getId()
+                        comment.getUser().getId(),
+                        NotificationType.REACTION,
+                        comment.getContent()
                 )
         );
     }

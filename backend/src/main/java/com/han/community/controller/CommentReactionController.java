@@ -18,7 +18,7 @@ public class CommentReactionController {
     private CommentReactionService commentReactionService;
 
     @PutMapping("/{commentId}/reaction")
-    public ResponseEntity<SuccessResponse<Void>> putReaction(
+    public ResponseEntity<Void> putReaction(
             @PathVariable Long commentId,
             @RequestBody CommentReactionDto.Request requestDto,
             @AuthenticationPrincipal User user) {

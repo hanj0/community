@@ -31,10 +31,11 @@ WHERE n.recipientId = :recipientId
 UPDATE Notification n
 SET n.lastActorId = :actorId,
     n.actorCount = n.actorCount + 1,
+    n.contentPreview = :contentPreview,
     n.updatedAt = CURRENT_TIMESTAMP
 WHERE n.id = :notificationId
 """)
-    void incrementActor(@Param("notificationId")Long notificationId, @Param("actorId")Long actorId);
+    void incrementActor(@Param("notificationId")Long notificationId, @Param("actorId")Long actorId, @Param("contentPreview")String contentPreview);
 
     long countByRecipientIdAndIsReadFalse(Long recipientId);
 

@@ -5,7 +5,7 @@ import com.han.community.dto.common.NotificationCursor;
 import com.han.community.entity.Notification;
 import com.han.community.entity.NotificationType;
 import com.han.community.entity.TargetType;
-import com.han.community.event.ReactionEvent;
+import com.han.community.event.NotificationEvent;
 import com.han.community.dto.common.CursorResponse;
 import com.han.community.repository.NotificationActorRepository;
 import com.han.community.repository.NotificationRepository;
@@ -83,43 +83,38 @@ public class NotificationService {
     }
 
     @Transactional
-    public void upsert(ReactionEvent event) {
+    public void upsert(NotificationEvent event) {
 
         Long recipientId = event.recipientId();
         TargetType targetType = event.targetType();
         Long targetId = event.targetId();
         Long actorId = event.actorId();
         Long rootPostId = event.rootPostId();
+        String contentPreview = event.contentPreview();
+        NotificationType type = event.type();
 
         Optional<Notification> notification = notificationRepository.findActiveGroup(
-                recipientId, targetType, targetId, NotificationType.REACTION
+                recipientId, targetType, targetId, type
         );
 
-        if(notification.isEmpty()) createNewGroup(actorId, recipientId, targetType, targetId, rootPostId);
-        else updateGroup(notification.get().getId(), actorId);
+        if(notification.isEmpty()) createNewGroup(actorId, recipientId, targetType, targetId, rootPostId, contentPreview, type);
+        else updateGroup(notification.get().getId(), actorId, contentPreview);
     }
 
     // todo: DataIntegrityViolationException 발생가능 > 빈분리를 하든, insertIgnore을 하든 해야함
-    private void createNewGroup(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId) {
+    private void createNewGroup(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId, String contentPreview, NotificationType type) {
 
         Notification notification = notificationRepository.save(
-                Notification.create(
-                        actorId,
-                        recipientId,
-                        targetType,
-                        targetId,
-                        rootPostId,
-                        NotificationType.REACTION
-                )
+                Notification.create(actorId, recipientId, targetType, targetId, rootPostId, type, contentPreview)
         );
         notificationActorRepository.InsertIgnore(notification.getId(), actorId);
     }
 
-    private void updateGroup(Long notificationId, Long actorId) {
+    private void updateGroup(Long notificationId, Long actorId, String contentPreview) {
 
         int inserted = notificationActorRepository.InsertIgnore(notificationId, actorId);
         if(inserted > 0) {
-            notificationRepository.incrementActor(notificationId, actorId);
+            notificationRepository.incrementActor(notificationId, actorId, contentPreview);
         }
     }
 }

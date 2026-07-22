@@ -1,6 +1,6 @@
 package com.han.community.global;
 
-import com.han.community.event.ReactionEvent;
+import com.han.community.event.NotificationEvent;
 import com.han.community.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
@@ -16,7 +16,7 @@ public class NotificationEventListener {
 
     @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onReaction(ReactionEvent event) {
+    public void handle(NotificationEvent event) {
         notificationService.upsert(event);
     }
 }

@@ -4,8 +4,9 @@ import com.han.community.common.IntegrationTestSupport;
 import com.han.community.dto.NotificationDto;
 import com.han.community.dto.common.CursorResponse;
 import com.han.community.entity.Notification;
+import com.han.community.entity.NotificationType;
 import com.han.community.entity.TargetType;
-import com.han.community.event.ReactionEvent;
+import com.han.community.event.NotificationEvent;
 import com.han.community.repository.NotificationActorRepository;
 import com.han.community.repository.NotificationRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +33,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     static final Long ACTOR_A = 2L;
     static final Long ACTOR_B = 3L;
     static final Long POST_ID = 100L;
+    static final String CONTENT_PREVIEW = "preview";
 
     @AfterEach
     void tearDown() {
@@ -173,12 +175,16 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     }
 
 
-    private ReactionEvent eventOf(Long actorId) {
+    private NotificationEvent eventOf(Long actorId) {
         return eventOf(actorId, POST_ID);
     }
 
-    private ReactionEvent eventOf(Long actorId, Long postId) {
-        return new ReactionEvent(actorId, TargetType.POST, postId, postId, RECIPIENT);
+    private NotificationEvent eventOf(Long actorId, Long postId) {
+        return eventOf(actorId, postId, CONTENT_PREVIEW);
+    }
+
+    private NotificationEvent eventOf(Long actorId, Long postId, String preview) {
+        return new NotificationEvent(actorId, TargetType.POST, postId, postId, RECIPIENT, NotificationType.REACTION ,preview);
     }
 
     private Notification findBy(List<Notification> all, boolean isRead) {

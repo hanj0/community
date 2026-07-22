@@ -23,17 +23,19 @@ public class Notification extends BaseEntity {
     private Long rootPostId;
     @Enumerated(EnumType.STRING)
     private NotificationType type;
+    private String contentPreview;
     private int actorCount;
     private Long lastActorId;
     private boolean isRead;
 
-    public static Notification create(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId, NotificationType type) {
+    public static Notification create(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId, NotificationType type, String contentPreview) {
         Notification n = new Notification();
         n.recipientId = recipientId;
         n.targetType = targetType;
         n.targetId = targetId;
         n.rootPostId = rootPostId;
         n.type = type;
+        n.contentPreview = contentPreview;
         n.actorCount = 1;
         n.lastActorId = actorId;
         n.isRead = false;

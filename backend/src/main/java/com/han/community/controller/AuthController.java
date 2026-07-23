@@ -1,6 +1,7 @@
 package com.han.community.controller;
 
 import com.han.community.dto.AuthDto;
+import com.han.community.dto.UserDto;
 import com.han.community.entity.User;
 import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.AuthService;
@@ -96,5 +97,17 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.of(AuthDto.StatusResponse.from(user)));
+    }
+
+    @PatchMapping("/password")
+    public ResponseEntity<Void> patchPassword(
+            @AuthenticationPrincipal User user,
+            @RequestBody AuthDto.ChangePasswordRequest requestDto) {
+
+        authService.changePassword(user.getId(), requestDto);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .build();
     }
 }

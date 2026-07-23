@@ -3,6 +3,7 @@ package com.han.community.repository;
 import com.han.community.dto.UserDto;
 import com.han.community.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,4 +25,13 @@ SELECT new com.han.community.dto.UserDto$StatsResponse(
     UserDto.StatsResponse findUserStats(@Param("userId") Long userId);
 
     List<User> findAllById(Iterable<Long> ids);
+
+    @Modifying
+    @Query("""
+UPDATE User u
+SET u.password = :hashed,
+u.updatedAt = CURRENT_TIMESTAMP
+WHERE u.id = :userId
+""")
+    void updatePassword(@Param("userId")Long userId, @Param("hashed")String hashed);
 }

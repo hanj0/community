@@ -55,4 +55,9 @@ public class AuthDto {
             );
         }
     }
+
+    public record ChangePasswordRequest(
+            String currentPassword,
+            String newPassword
+    ) {}
 }

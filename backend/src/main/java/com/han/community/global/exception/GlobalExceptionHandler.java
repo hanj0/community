@@ -20,12 +20,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e, HttpServletRequest req) {
 
         ErrorCode code = e.getErrorCode();
-        log.warn("Business exception: {} - {}", code.getCode(), e.getMessage());
+        log.warn("Business exception: {} - {}", code.name(), e.getMessage());
 
         return ResponseEntity
                 .status(code.getStatus())
                 .body(new ErrorResponse(new ErrorResponse.Error(
-                        code.getCode(),
+                        code.name(),
                         e.getMessage(),
                         null,
                         MDC.get("requestId"),
@@ -41,12 +41,12 @@ public class GlobalExceptionHandler {
         }
 
         log.error("Unexpected exception", e);
-        // 서버에러발생 알림 기능 추가 요
+        // todo: 서버에러발생 알림 기능 추가
 
         return ResponseEntity
                 .internalServerError()
                 .body(new ErrorResponse(new ErrorResponse.Error(
-                        ErrorCode.INTERNAL_ERROR.getCode(),
+                        ErrorCode.INTERNAL_ERROR.name(),
                         ErrorCode.INTERNAL_ERROR.getMessage(),
                         null,
                         MDC.get("requestId"),

@@ -44,3 +44,19 @@ export async function getMe(): Promise<User | null> {
   if (res.status === 401) return null;
   return handleResponse<User>(res);
 }
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<void> {
+  const res = await fetch(`${BASE}/password`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? '비밀번호 변경에 실패했습니다.');
+  }
+}

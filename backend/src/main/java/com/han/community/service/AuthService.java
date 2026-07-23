@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService{
+public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -56,4 +56,23 @@ public class AuthService{
             throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED);
         }
     }
+
+    // todo: 일정기간 많은 요청 시 요청제한해야함
+    //  다른 세션/리프레시 토큰 무효화
+    //  변경 완료 이메일 알림
+    @Transactional
+    public void changePassword(Long userId, AuthDto.ChangePasswordRequest requestDto) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if(!passwordEncoder.matches(requestDto.currentPassword(), user.getPassword()))
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+
+        if(passwordEncoder.matches(requestDto.newPassword(), user.getPassword()))
+            throw new BusinessException(ErrorCode.SAME_AS_CURRENT_PASSWORD);
+
+        userRepository.updatePassword(userId, passwordEncoder.encode(requestDto.newPassword()));
+    }
+
 }

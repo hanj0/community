@@ -5,7 +5,9 @@ import { fetchMyPosts, fetchMyComments, fetchMyBookmarks, fetchMyStats } from '.
 import type { PostSummary, MyComment } from '../types';
 import { formatRelativeTime } from '../utils/time';
 import Pagination from '../components/common/Pagination';
+import PasswordChangeModal from '../components/common/PasswordChangeModal';
 
+type Section = 'activity' | 'settings';
 type Tab = 'posts' | 'comments' | 'bookmarks';
 
 function formatDate(iso: string) {
@@ -19,7 +21,9 @@ export default function MyPage() {
   const { user, logout } = useAuth();
 
   const [stats, setStats] = useState({ postCount: 0, commentCount: 0, createdAt: '' });
+  const [section, setSection] = useState<Section>('settings');
   const [tab, setTab] = useState<Tab>('posts');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [postsPage, setPostsPage] = useState(1);
@@ -94,6 +98,16 @@ export default function MyPage() {
         </div>
       </div>
 
+      <div className="mypg-nav">
+        <button className={`mypg-nav-tab${section === 'activity' ? ' active' : ''}`} onClick={() => setSection('activity')}>
+          내 활동
+        </button>
+        <button className={`mypg-nav-tab${section === 'settings' ? ' active' : ''}`} onClick={() => setSection('settings')}>
+          설정
+        </button>
+      </div>
+
+      {section === 'activity' && (
       <div className="mypg-sec">
         <div className="mypg-tabs">
           <button className={`mypg-tab${tab === 'posts' ? ' active' : ''}`} onClick={() => setTab('posts')}>
@@ -178,22 +192,29 @@ export default function MyPage() {
           )}
         </div>
       </div>
+      )}
 
-      <div className="mypg-sec">
-        <div className="mypg-sch">설정</div>
-        <div className="mypg-act">
-          <span className="mypg-act-ic">🔔</span>
-          <span className="mypg-act-lbl">알림 설정</span>
-          <span className="mypg-act-val">&rsaquo;</span>
+      {section === 'settings' && (
+      <>
+        <div className="mypg-sec">
+          <div className="mypg-sch">설정</div>
+          <div className="mypg-act">
+            <span className="mypg-act-ic">🔔</span>
+            <span className="mypg-act-lbl">알림 설정</span>
+            <span className="mypg-act-val">&rsaquo;</span>
+          </div>
+          <div className="mypg-act" onClick={() => setShowPasswordModal(true)}>
+            <span className="mypg-act-ic">🔐</span>
+            <span className="mypg-act-lbl">비밀번호 변경</span>
+            <span className="mypg-act-val">&rsaquo;</span>
+          </div>
         </div>
-        <div className="mypg-act">
-          <span className="mypg-act-ic">🔐</span>
-          <span className="mypg-act-lbl">비밀번호 변경</span>
-          <span className="mypg-act-val">&rsaquo;</span>
-        </div>
-      </div>
 
-      <button className="mypg-logout" onClick={handleLogout}>로그아웃</button>
+        <button className="mypg-logout" onClick={handleLogout}>로그아웃</button>
+      </>
+      )}
+
+      {showPasswordModal && <PasswordChangeModal onClose={() => setShowPasswordModal(false)} />}
     </div>
   );
 }

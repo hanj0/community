@@ -303,3 +303,15 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .modal-btn:hover{background:var(--bg2);color:var(--t1)}
 .modal-btn.primary{background:var(--t1);color:var(--bg);border-color:var(--t1)}
 .modal-btn.primary:hover{opacity:.85}
+/* Report modal */
+.report-reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.report-reason{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:.5px solid var(--b2);border-radius:10px;cursor:pointer;transition:border-color .12s,background .12s}
+.report-reason:hover{background:var(--bg2)}
+.report-reason.sel{border-color:var(--primary,#378ADD);background:var(--bg2)}
+.report-reason input{margin-top:2px;accent-color:var(--primary,#378ADD);cursor:pointer;flex-shrink:0}
+.report-reason-text{display:flex;flex-direction:column;gap:2px}
+.report-reason-label{font-size:13px;font-weight:500;color:var(--t1)}
+.report-reason-desc{font-size:11px;color:var(--t3);line-height:1.4}
+.report-detail{margin-bottom:20px}
+.report-detail-input{resize:vertical;line-height:1.6;min-height:60px}
+.report-detail-count{font-size:11px;color:var(--t3);text-align:right;margin-top:4px}

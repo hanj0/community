@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusiness(BusinessException e, HttpServletRequest req) {
 
         ErrorCode code = e.getErrorCode();
-        log.warn("Business exception: {} - {}", code.name(), e.getMessage());
+        log.warn("Business exception: [{}] {} {} - {}", code.name(), req.getMethod(), req.getRequestURI(), e.getMessage());
 
         return ResponseEntity
                 .status(code.getStatus())

@@ -6,6 +6,7 @@ import { formatRelativeTime } from '../../utils/time';
 import { useAuth } from '../../context/AuthContext';
 import { useReaction } from '../../hooks/useReaction';
 import CommentInput from './CommentInput';
+import ReportModal from '../common/ReportModal';
 
 interface CommentItemProps {
   comment: CommentData;
@@ -36,6 +37,7 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
 
   const isCommentAuthor = user?.id === comment.authorInfo?.id;
 
@@ -131,7 +133,11 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
                 }
               </>
             )}
-            <button className="cmb">신고</button>
+            {user && !isCommentAuthor && (
+              <button className="cmb dng" onClick={() => setIsReporting(true)}>
+                신고
+              </button>
+            )}
           </div>
         </div>
         {isEditing
@@ -181,6 +187,9 @@ export default function CommentItem({ comment, postId, isReply = false }: Commen
             }}
           />
         </div>
+      )}
+      {isReporting && (
+        <ReportModal targetType="COMMENT" targetId={comment.id} onClose={() => setIsReporting(false)} />
       )}
     </>
   );

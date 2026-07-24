@@ -25,6 +25,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return user ? <>{children}</> : <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
 }
 
+function LoginRoute() {
+  const { user } = useAuth();
+  const location = useLocation();
+  const from = (location.state as { from?: string } | null)?.from;
+  if (user) return <Navigate to={from ?? '/'} replace />;
+  return <LoginPage />;
+}
+
 function LoginPromptModal() {
   const { dismissLoginPrompt } = useAuth();
   const navigate = useNavigate();
@@ -61,7 +69,7 @@ export default function App() {
         <Route path="/hot" element={<HotPage />} />
         <Route path="/all" element={<AllPage />} />
         <Route path="/posts/:id" element={<PostDetailPage />} />
-        <Route path="/login" element={user ? <Navigate to="/" replace /> : <LoginPage />} />
+        <Route path="/login" element={<LoginRoute />} />
         <Route path="/signup" element={user ? <Navigate to="/" replace /> : <SignupPage />} />
         <Route path="/write" element={<ProtectedRoute><WritePostPage /></ProtectedRoute>} />
         <Route path="/me" element={<ProtectedRoute><MyPage /></ProtectedRoute>} />

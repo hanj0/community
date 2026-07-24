@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { formatRelativeTime } from '../utils/time';
 import { rankColor } from '../utils/rank';
 import ChTag from '../components/common/ChTag';
+import ReportModal from '../components/common/ReportModal';
 import CommentItem from '../components/comment/CommentItem';
 import CommentInput from '../components/comment/CommentInput';
 
@@ -42,6 +43,7 @@ export default function PostDetailPage() {
 
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
 
   const [comments, setComments] = useState<CommentData[]>([]);
   const [commentPage, setCommentPage] = useState(0);
@@ -291,7 +293,11 @@ export default function PostDetailPage() {
             </div>
             <div className="rac">
               <button className="ac">공유</button>
-              <button className="ac dng">신고</button>
+              {user && !isPostAuthor && (
+                <button className="ac dng" onClick={() => setIsReporting(true)}>
+                  신고
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -352,6 +358,10 @@ export default function PostDetailPage() {
           ← 목록으로
         </button>
       </div>
+
+      {isReporting && (
+        <ReportModal targetType="POST" targetId={post.id} onClose={() => setIsReporting(false)} />
+      )}
     </div>
   );
 }

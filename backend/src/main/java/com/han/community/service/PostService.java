@@ -61,7 +61,7 @@ public class PostService {
         PostReaction postReaction = null;
         boolean isBookmarked = false;
         if(userId != null) {
-/// reaction을 post조회할때 left join으로 한번에 조회하는 방법도 생각
+            // todo: reaction을 post조회할때 left join으로 한번에 조회하는 방법도 생각
             postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
                     .orElse(null);
             isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
@@ -111,7 +111,7 @@ public class PostService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        // soft delete로 수정 필요
+        // todo: soft delete로 수정 필요
         commentRepository.deleteByPostId(postId);
         postRepository.deleteById(postId);
     }

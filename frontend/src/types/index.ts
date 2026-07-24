@@ -69,6 +69,16 @@ export interface NotificationItem {
   targetPreview?: string;
 }
 
+export type ReportTargetType = 'POST' | 'COMMENT';
+export type ReportReason = 'SPAM' | 'ABUSE' | 'SEXUAL' | 'ILLEGAL' | 'ETC';
+
+export interface ReportRequest {
+  targetType: ReportTargetType;
+  targetId: number;
+  reason: ReportReason;
+  reasonDetail: string;
+}
+
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
 export type PeriodType = '24h' | '7d' | '30d';

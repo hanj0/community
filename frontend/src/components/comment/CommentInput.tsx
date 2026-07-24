@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { getAvatarStyle } from '../../utils/avatar';
+import { useAuth } from '../../context/AuthContext';
 
 interface CommentInputProps {
   placeholder?: string;
@@ -9,7 +11,9 @@ interface CommentInputProps {
 const MAX_LENGTH = 500;
 
 export default function CommentInput({ placeholder = '댓글을 입력하세요', onSubmit, onFocus }: CommentInputProps) {
+  const { user } = useAuth();
   const [text, setText] = useState('');
+  const { av, ab, ac } = getAvatarStyle(user?.username ?? '');
 
   const handleSubmit = () => {
     if (text.trim()) {
@@ -21,7 +25,7 @@ export default function CommentInput({ placeholder = '댓글을 입력하세요'
   return (
     <div className="cia">
       <div className="cir">
-        <div className="cmav" style={{ background: '#B5D4F4', color: '#0C447C' }}>김</div>
+        {user && <div className="cmav" style={{ background: ab, color: ac }}>{av}</div>}
         <div className="cibx">
           <textarea
             className="cita"

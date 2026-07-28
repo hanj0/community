@@ -1,7 +1,7 @@
 package com.han.community.service;
 
-import com.han.community.dto.report.ReportRequest;
-import com.han.community.dto.report.ReportResponse;
+import com.han.community.dto.report.ReportRequestDto;
+import com.han.community.dto.report.ReportResponseDto;
 import com.han.community.entity.*;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
@@ -21,21 +21,21 @@ public class ReportService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public ReportResponse report(Long userId, ReportRequest requestDto) {
+    public ReportResponseDto report(Long userId, ReportRequestDto requestDto) {
 
         if(requestDto.reason().requiresDetail() && (requestDto.reasonDetail() == null || requestDto.reasonDetail().isBlank()))
             throw new BusinessException(ErrorCode.INVALID_REQUEST);
 
         Object target = getTarget(requestDto.targetType(), requestDto.targetId());
 
-        Long ownerId;
+        Long reportedUserId;
         String snapshot;
         if(target instanceof Post post) {
-            ownerId = post.getUser().getId();
+            reportedUserId = post.getUser().getId();
             snapshot = post.getContent();
         }
         else if(target instanceof Comment comment) {
-            ownerId = comment.getUser().getId();
+            reportedUserId = comment.getUser().getId();
             snapshot = comment.getContent();
         }
         else {
@@ -46,7 +46,7 @@ public class ReportService {
                 .reporterId(userId)
                 .targetType(requestDto.targetType())
                 .targetId(requestDto.targetId())
-                .targetOwnerId(ownerId)
+                .reportedUserId(reportedUserId)
                 .reason(requestDto.reason())
                 .reasonDetail(requestDto.reasonDetail())
                 .targetContentSnapshot(snapshot)
@@ -54,7 +54,7 @@ public class ReportService {
 
         Report saved = reportRepository.save(report);
 
-        return new ReportResponse(saved.getId());
+        return new ReportResponseDto(saved.getId());
     }
 
     private Object getTarget(ReportTargetType type, Long id) {

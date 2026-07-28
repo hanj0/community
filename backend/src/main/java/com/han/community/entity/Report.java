@@ -27,7 +27,7 @@ public class Report extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private ReportTargetType targetType;
     private Long targetId;
-    private Long targetOwnerId;
+    private Long reportedUserId;
     @Enumerated(EnumType.STRING)
     private ReportReason reason;
     private String reasonDetail;
@@ -35,21 +35,22 @@ public class Report extends BaseTimeEntity {
     private String targetContentSnapshot;
     @Enumerated(EnumType.STRING)
     private ReportStatus status;
+    @Enumerated(EnumType.STRING)
+    private ReportResolution resolution;
     private Long handledBy;
     private LocalDateTime handledAt;
 
     @Builder
-    private Report(Long reporterId, ReportTargetType targetType, Long targetId, Long targetOwnerId,
+    private Report(Long reporterId, ReportTargetType targetType, Long targetId, Long reportedUserId,
                    ReportReason reason, String reasonDetail, String targetContentSnapshot) {
 
         this.reporterId = reporterId;
         this.targetType = targetType;
         this.targetId = targetId;
-        this.targetOwnerId = targetOwnerId;
+        this.reportedUserId = reportedUserId;
         this.reason = reason;
         this.reasonDetail = reasonDetail;
         this.targetContentSnapshot = targetContentSnapshot;
         this.status = ReportStatus.PENDING;
-
     }
 }

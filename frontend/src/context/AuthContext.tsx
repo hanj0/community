@@ -23,7 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const handler = () => setShowLoginPrompt(true);
+    // 401은 서버 세션이 이미 없다는 뜻이다. 로그인 상태를 같이 비워야
+    // 만료된 세션으로 관리자 화면 같은 권한 화면이 남아있지 않는다.
+    const handler = () => {
+      setUser(null);
+      setShowLoginPrompt(true);
+    };
     window.addEventListener('auth:unauthorized', handler);
     return () => window.removeEventListener('auth:unauthorized', handler);
   }, []);

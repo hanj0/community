@@ -1,8 +1,8 @@
 package com.han.community.controller;
 
 import com.han.community.dto.common.SuccessResponse;
-import com.han.community.dto.report.ReportRequest;
-import com.han.community.dto.report.ReportResponse;
+import com.han.community.dto.report.ReportRequestDto;
+import com.han.community.dto.report.ReportResponseDto;
 import com.han.community.entity.User;
 import com.han.community.service.ReportService;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +22,11 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping
-    public ResponseEntity<SuccessResponse<ReportResponse>> postReport(
+    public ResponseEntity<SuccessResponse<ReportResponseDto>> postReport(
             @AuthenticationPrincipal User user,
-            @RequestBody ReportRequest requestDto) {
+            @RequestBody ReportRequestDto requestDto) {
 
-        ReportResponse response = reportService.report(user.getId(), requestDto);
+        ReportResponseDto response = reportService.report(user.getId(), requestDto);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

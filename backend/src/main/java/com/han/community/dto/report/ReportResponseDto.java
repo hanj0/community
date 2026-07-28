@@ -1,5 +1,5 @@
 package com.han.community.dto.report;
 
-public record ReportResponse(
+public record ReportResponseDto(
         Long reportId
 ) {}

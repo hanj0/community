@@ -42,6 +42,14 @@ export default function GNB() {
         <div className="gnb-r">
           {user ? (
             <>
+              {user.role === 'ADMIN' && (
+                <button
+                  className={'gnb-admin' + (location.pathname.startsWith('/admin') ? ' active' : '')}
+                  onClick={() => navigate('/admin/reports')}
+                >
+                  관리자
+                </button>
+              )}
               <NotificationBell />
               <div className="gnb-user" onClick={() => navigate('/me')}>
                 <div className="av">{user.username.charAt(0).toUpperCase()}</div>

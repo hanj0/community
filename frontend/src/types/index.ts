@@ -79,15 +79,42 @@ export interface ReportRequest {
   reasonDetail: string;
 }
 
+/** 신고 처리 단계. 목록 탭은 이 둘로만 나뉜다. */
+export type ReportStatus = 'PENDING' | 'RESOLVED';
+
+/** RESOLVED 안에서의 처리 결과. PENDING인 신고에는 값이 없다. */
+export type ReportResolution = 'REJECTED' | 'CONTENT_DELETED' | 'TARGET_ALREADY_DELETED';
+
+export type ReportSortType = 'count' | 'latest';
+
+/** 같은 대상에 대한 신고를 한 줄로 묶은 관리자 목록 행. */
+export interface ReportSummary {
+  reportCount: number;
+  targetType: ReportTargetType;
+  targetId: number;
+  targetPreview: string | null;
+  reportedUserId: number;
+  reportedUsername: string;
+  mainReason: ReportReason;
+  lastReportedAt: string;
+  status: ReportStatus;
+  /** 서버 추가 예정이라 옵셔널. 없으면 상태 배지는 '처리완료'로만 표시. */
+  resolution?: ReportResolution | null;
+}
+
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';
 export type ViewType = 'card' | 'compact';
 export type PeriodType = '24h' | '7d' | '30d';
+
+export type UserRole = 'USER' | 'ADMIN';
 
 export interface User {
   id: number;
   username: string;
   email: string;
   createdAt: string;
+  /** /api/auth/me만 내려준다. 로그인·회원가입 응답에는 없어서 옵셔널. */
+  role?: UserRole;
 }
 
 export interface ApiErrorDetail {

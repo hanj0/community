@@ -1,9 +1,11 @@
 package com.han.community.controller;
 
 import com.han.community.dto.common.PageResponse;
+import com.han.community.dto.common.SuccessResponse;
+import com.han.community.dto.report.ReportDetailResponseDto;
 import com.han.community.dto.report.ReportSummaryResponseDto;
-import com.han.community.entity.Report;
 import com.han.community.entity.ReportStatus;
+import com.han.community.entity.ReportTargetType;
 import com.han.community.entity.User;
 import com.han.community.service.AdminReportService;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/reports")
@@ -26,7 +25,6 @@ public class AdminReportController {
 
     @GetMapping
     public ResponseEntity<PageResponse<ReportSummaryResponseDto>> getReports(
-            @AuthenticationPrincipal User user,
             @RequestParam(defaultValue = "count") String sort,
             @RequestParam ReportStatus reportStatus,
             Pageable pageable) {
@@ -36,5 +34,18 @@ public class AdminReportController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));
+    }
+
+    @GetMapping("/content/{targetType}/{targetId}")
+    public ResponseEntity<SuccessResponse<ReportDetailResponseDto>> getReport(
+            @PathVariable ReportTargetType targetType,
+            @PathVariable Long targetId,
+            @RequestParam ReportStatus reportStatus) {
+
+        ReportDetailResponseDto response = reportService.getReportDetail(targetType, targetId, reportStatus);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(SuccessResponse.of(response));
     }
 }

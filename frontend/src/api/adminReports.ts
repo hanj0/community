@@ -1,4 +1,13 @@
-import type { PagedResponse, ReportSortType, ReportStatus, ReportSummary } from '../types';
+import type {
+  PagedResponse,
+  ReportDetail,
+  ReportReason,
+  ReportReasonCount,
+  ReportSortType,
+  ReportStatus,
+  ReportSummary,
+  ReportTargetType,
+} from '../types';
 
 /**
  * 관리자 신고 목록. GET /api/admin/reports → PageResponse 그대로.
@@ -31,4 +40,63 @@ export async function fetchAdminReports(params: {
   }
 
   return res.json() as Promise<PagedResponse<ReportSummary>>;
+}
+
+interface RawReportDetail {
+  targetType: ReportTargetType;
+  targetId: number;
+  reportCount: number;
+  status: ReportStatus;
+  mainReason: ReportReason;
+  firstReportedAt: string;
+  lastReportedAt: string;
+  updated: boolean;
+  snapshot: string;
+  reasonCounts: ReportReasonCount[];
+  reportedUserId: number;
+}
+
+/**
+ * 신고 상세. GET /api/admin/reports/content/{targetType}/{targetId} → SuccessResponse 래핑.
+ * 서버가 아직 피신고자 닉네임과 resolution을 안 내려줘서, 목록 행(summary)에서 보충한다.
+ */
+export async function fetchAdminReportDetail(summary: ReportSummary): Promise<ReportDetail> {
+  const { targetType, targetId } = summary;
+  const res = await fetch(`/api/admin/reports/content/${targetType}/${targetId}`, {
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      throw new Error('로그인이 필요합니다.');
+    }
+    if (res.status === 403) {
+      throw new Error('관리자 권한이 필요합니다.');
+    }
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? '신고 상세를 불러올 수 없습니다.');
+  }
+
+  const body = await res.json();
+  const raw = body.data as RawReportDetail;
+
+  return {
+    targetType: raw.targetType,
+    targetId: raw.targetId,
+    reportCount: raw.reportCount,
+    status: raw.status,
+    resolution: summary.resolution,
+    mainReason: raw.mainReason,
+    firstReportedAt: raw.firstReportedAt,
+    lastReportedAt: raw.lastReportedAt,
+    edited: raw.updated,
+    contentSnapshot: raw.snapshot,
+    reasonDistribution: raw.reasonCounts,
+    reportedUserId: raw.reportedUserId,
+    reportedUsername: summary.reportedUsername,
+    reportedUserState: null,
+    reportedUserPriorSanctions: null,
+    suggestion: null,
+  };
 }

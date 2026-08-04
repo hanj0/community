@@ -6,28 +6,33 @@ import com.han.community.entity.ReportTargetType;
 
 import java.time.LocalDateTime;
 
-public record ReportSummaryResponseDto(
+public record ReportDetail(
+        LocalDateTime contentUpdatedAt,
+        String content,
         Long reportCount,
         ReportTargetType targetType,
         Long targetId,
-        String targetPreview,
         Long reportedUserId,
-        String reportedUsername,
-        ReportReason mainReason,
+        ReportStatus status,
+        LocalDateTime firstReportedAt,
         LocalDateTime lastReportedAt,
-        ReportStatus status
+        ReportReason mainReason,
+        String snapshot
 ) {
-    public static ReportSummaryResponseDto from(ReportSummaryResponseProjection p) {
-        return new ReportSummaryResponseDto(
+
+    public static ReportDetail from(ReportDetailProjection p) {
+        return new ReportDetail(
+                p.getContentUpdatedAt(),
+                p.getContent(),
                 p.getReportCount(),
                 p.getTargetType(),
                 p.getTargetId(),
-                p.getTargetPreview(),
                 p.getReportedUserId(),
-                p.getReportedUsername(),
-                p.getMainReason(),
+                p.getStatus(),
+                p.getFirstReportedAt(),
                 p.getLastReportedAt(),
-                p.getStatus()
+                p.getMainReason(),
+                p.getSnapshot()
         );
     }
 }

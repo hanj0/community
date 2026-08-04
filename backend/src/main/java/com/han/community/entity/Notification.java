@@ -18,7 +18,7 @@ public class Notification extends BaseEntity {
     private Long id;
     private Long recipientId;
     @Enumerated(EnumType.STRING)
-    private TargetType targetType;
+    private NotificationTargetType targetType;
     private Long targetId;
     private Long rootPostId;
     @Enumerated(EnumType.STRING)
@@ -28,7 +28,7 @@ public class Notification extends BaseEntity {
     private Long lastActorId;
     private boolean isRead;
 
-    public static Notification create(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId, NotificationType type, String contentPreview) {
+    public static Notification create(Long actorId, Long recipientId, NotificationTargetType targetType, Long targetId, Long rootPostId, NotificationType type, String contentPreview) {
         Notification n = new Notification();
         n.recipientId = recipientId;
         n.targetType = targetType;

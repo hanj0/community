@@ -1,6 +1,6 @@
 package com.han.community.entity;
 
-public enum TargetType {
+public enum NotificationTargetType {
     POST,
     COMMENT
 }

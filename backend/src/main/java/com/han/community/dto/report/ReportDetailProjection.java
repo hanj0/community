@@ -6,14 +6,17 @@ import com.han.community.entity.ReportTargetType;
 
 import java.time.LocalDateTime;
 
-public interface ReportSummaryView {
+public interface ReportDetailProjection {
+
+    LocalDateTime getContentUpdatedAt();
+    String getContent();
     Long getReportCount();
     ReportTargetType getTargetType();
     Long getTargetId();
-    String getTargetPreview();
     Long getReportedUserId();
-    String getReportedUsername();
-    ReportReason getMainReason();
-    LocalDateTime getLastReportedAt();
     ReportStatus getStatus();
+    LocalDateTime getFirstReportedAt();
+    LocalDateTime getLastReportedAt();
+    ReportReason getMainReason();
+    String getSnapshot();
 }

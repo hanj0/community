@@ -1,7 +1,12 @@
 package com.han.community.service;
 
+import com.han.community.dto.UserSanctionInfo;
+import com.han.community.dto.report.ReportDetail;
+import com.han.community.dto.report.ReportDetailResponseDto;
+import com.han.community.dto.report.ReportReasonCount;
 import com.han.community.dto.report.ReportSummaryResponseDto;
 import com.han.community.entity.ReportStatus;
+import com.han.community.entity.ReportTargetType;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.ReportRepository;
@@ -11,6 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +26,7 @@ public class AdminReportService {
 
     private final ReportRepository reportRepository;
 
+    @Transactional
     public Page<ReportSummaryResponseDto> getReportPage(String sort, ReportStatus status, Pageable pageable) {
 
         Sort pageSort = switch(sort) {
@@ -31,14 +40,21 @@ public class AdminReportService {
                 pageSort
         );
 
-        return findReportPage(status, pageable);
+        return reportRepository.findReportPage(status, pageable)
+                .map(p -> ReportSummaryResponseDto.from(p));
     }
 
-    private Page<ReportSummaryResponseDto> findReportPage(ReportStatus status, Pageable pageable) {
-        // todo: 동적쿼리 도입하면 status에 따라 조건문 동적으로
-        if(status == null) return reportRepository.findReportPageImpl(pageable)
-                .map(ReportSummaryResponseDto::from);
-        return reportRepository.findReportPageImpl(status.name(), pageable)
-                .map(v -> ReportSummaryResponseDto.from(v));
+    @Transactional
+    public ReportDetailResponseDto getReportDetail(ReportTargetType targetType, Long targetId, ReportStatus status) {
+
+        ReportDetail reportDetail = ReportDetail.from(
+                reportRepository.findReportDetail(targetType, targetId)
+                        .orElseThrow(() -> new IllegalStateException("ReportDetail must exist"))
+        );
+
+        List<ReportReasonCount> reasonCounts = reportRepository.findReportReasonCount(targetType, targetId);
+        UserSanctionInfo userSanctionInfo = null;
+
+        return ReportDetailResponseDto.from(reportDetail, reasonCounts, userSanctionInfo);
     }
 }

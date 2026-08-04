@@ -2,7 +2,7 @@ package com.han.community.repository;
 
 import com.han.community.entity.Notification;
 import com.han.community.entity.NotificationType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -23,7 +23,7 @@ WHERE n.recipientId = :recipientId
     AND n.type = :type
     AND n.isRead = false
 """)
-    Optional<Notification> findActiveGroup(@Param("recipientId")Long recipientId, @Param("targetType")TargetType targetType,
+    Optional<Notification> findActiveGroup(@Param("recipientId")Long recipientId, @Param("targetType") NotificationTargetType targetType,
                                            @Param("targetId")Long targetId, @Param("type")NotificationType type);
 
     @Modifying

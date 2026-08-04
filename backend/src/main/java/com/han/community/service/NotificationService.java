@@ -4,7 +4,7 @@ import com.han.community.dto.NotificationDto;
 import com.han.community.dto.common.NotificationCursor;
 import com.han.community.entity.Notification;
 import com.han.community.entity.NotificationType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 import com.han.community.event.NotificationEvent;
 import com.han.community.dto.common.CursorResponse;
 import com.han.community.repository.NotificationActorRepository;
@@ -86,7 +86,7 @@ public class NotificationService {
     public void upsert(NotificationEvent event) {
 
         Long recipientId = event.recipientId();
-        TargetType targetType = event.targetType();
+        NotificationTargetType targetType = event.targetType();
         Long targetId = event.targetId();
         Long actorId = event.actorId();
         Long rootPostId = event.rootPostId();
@@ -102,7 +102,7 @@ public class NotificationService {
     }
 
     // todo: DataIntegrityViolationException 발생가능 > 빈분리를 하든, insertIgnore을 하든 해야함
-    private void createNewGroup(Long actorId, Long recipientId, TargetType targetType, Long targetId, Long rootPostId, String contentPreview, NotificationType type) {
+    private void createNewGroup(Long actorId, Long recipientId, NotificationTargetType targetType, Long targetId, Long rootPostId, String contentPreview, NotificationType type) {
 
         Notification notification = notificationRepository.save(
                 Notification.create(actorId, recipientId, targetType, targetId, rootPostId, type, contentPreview)

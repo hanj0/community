@@ -56,7 +56,7 @@ public class CommentReactionService {
         publisher.publishEvent(
                 new NotificationEvent(
                         userId,
-                        TargetType.COMMENT,
+                        NotificationTargetType.COMMENT,
                         commentId,
                         comment.getPost().getId(),
                         comment.getUser().getId(),

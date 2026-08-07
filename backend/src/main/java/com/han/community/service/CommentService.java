@@ -134,7 +134,7 @@ public class CommentService {
         if(shouldNotify) {
             publisher.publishEvent(new NotificationEvent(
                     userId,
-                    parentId == null ? TargetType.POST : TargetType.COMMENT,
+                    parentId == null ? NotificationTargetType.POST : NotificationTargetType.COMMENT,
                     parentId == null ? postId : parentComment.getId(),
                     postId,
                     parentId == null ? post.getUser().getId() : parentComment.getUser().getId(),

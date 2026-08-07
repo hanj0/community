@@ -5,7 +5,7 @@ import com.han.community.dto.NotificationDto;
 import com.han.community.dto.common.CursorResponse;
 import com.han.community.entity.Notification;
 import com.han.community.entity.NotificationType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 import com.han.community.event.NotificationEvent;
 import com.han.community.repository.NotificationActorRepository;
 import com.han.community.repository.NotificationRepository;
@@ -184,7 +184,7 @@ public class NotificationServiceTest extends IntegrationTestSupport {
     }
 
     private NotificationEvent eventOf(Long actorId, Long postId, String preview) {
-        return new NotificationEvent(actorId, TargetType.POST, postId, postId, RECIPIENT, NotificationType.REACTION ,preview);
+        return new NotificationEvent(actorId, NotificationTargetType.POST, postId, postId, RECIPIENT, NotificationType.REACTION ,preview);
     }
 
     private Notification findBy(List<Notification> all, boolean isRead) {

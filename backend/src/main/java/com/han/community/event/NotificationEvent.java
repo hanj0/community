@@ -1,11 +1,11 @@
 package com.han.community.event;
 
 import com.han.community.entity.NotificationType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 
 public record NotificationEvent(
         Long actorId,
-        TargetType targetType,
+        NotificationTargetType targetType,
         Long targetId,
         Long rootPostId,
         Long recipientId,

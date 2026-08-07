@@ -2,7 +2,7 @@ package com.han.community.dto;
 
 import com.han.community.entity.Notification;
 import com.han.community.entity.NotificationType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,7 @@ public class NotificationDto {
     public record Response(
             Long id,
             NotificationType type,
-            TargetType targetType,
+            NotificationTargetType targetType,
             Long targetId,
             Long rootPostId,
             String lastActorName,

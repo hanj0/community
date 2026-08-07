@@ -17,17 +17,17 @@ public record ReportSummaryResponseDto(
         LocalDateTime lastReportedAt,
         ReportStatus status
 ) {
-    public static ReportSummaryResponseDto from(ReportSummaryView v) {
+    public static ReportSummaryResponseDto from(ReportSummaryResponseProjection p) {
         return new ReportSummaryResponseDto(
-                v.getReportCount(),
-                v.getTargetType(),
-                v.getTargetId(),
-                v.getTargetPreview(),
-                v.getReportedUserId(),
-                v.getReportedUsername(),
-                v.getMainReason(),
-                v.getLastReportedAt(),
-                v.getStatus()
+                p.getReportCount(),
+                p.getTargetType(),
+                p.getTargetId(),
+                p.getTargetPreview(),
+                p.getReportedUserId(),
+                p.getReportedUsername(),
+                p.getMainReason(),
+                p.getLastReportedAt(),
+                p.getStatus()
         );
     }
 }

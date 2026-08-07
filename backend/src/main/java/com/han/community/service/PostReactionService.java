@@ -4,7 +4,7 @@ import com.han.community.dto.PostReactionDto;
 import com.han.community.entity.NotificationType;
 import com.han.community.entity.Post;
 import com.han.community.entity.ReactionType;
-import com.han.community.entity.TargetType;
+import com.han.community.entity.NotificationTargetType;
 import com.han.community.event.NotificationEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
@@ -54,7 +54,7 @@ public class PostReactionService {
         if(authorId.equals(userId)) return;
 
         publisher.publishEvent(new NotificationEvent(
-                userId, TargetType.POST, postId, postId, authorId, NotificationType.REACTION, post.getContent()
+                userId, NotificationTargetType.POST, postId, postId, authorId, NotificationType.REACTION, post.getContent()
         ));
     }
 

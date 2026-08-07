@@ -39,6 +39,7 @@ public class Report extends BaseTimeEntity {
     private ReportResolution resolution;
     private Long handledBy;
     private LocalDateTime handledAt;
+    private String handledMemo;
 
     @Builder
     private Report(Long reporterId, ReportTargetType targetType, Long targetId, Long reportedUserId,

@@ -348,7 +348,8 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .rpt-mono{font-size:12px;color:var(--t3);white-space:nowrap}
 .rpt-status{font-size:11px;font-weight:500;padding:3px 9px;border-radius:10px;white-space:nowrap}
 .rpt-status.pending{background:#FAEEDA;color:#633806}
-.rpt-status.resolved{background:#E8F3DC;color:#3B5B14}
+.rpt-status.done{background:#E8F3DC;color:#3B5B14}
+.rpt-status.resolved{background:#FBE9E8;color:var(--red)}
 .rpt-status.resolved.muted{background:var(--bg3);color:var(--t2)}
 
 /* 신고 처리 드로어 */
@@ -407,7 +408,14 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .rpt-drawer-commit:hover{opacity:.9}
 .rpt-drawer-result-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%}
 .rpt-drawer-foot-note{font-size:12.5px;color:var(--t3);margin-right:auto}
-.rpt-drawer-history-note p{padding:9px 16px 15px;font-size:13px;color:var(--t2);line-height:1.6}
+.rpt-history{display:flex;flex-direction:column;gap:10px}
+.rpt-history-head{display:flex;align-items:baseline;gap:7px}
+.rpt-history-head h2{font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--t1)}
+.rpt-history-head span{font-size:12px;color:var(--t3)}
+.rpt-history-list{display:flex;flex-direction:column;gap:10px}
+.rpt-history-round-head{display:flex;align-items:center;gap:9px;padding:13px 16px 0;flex-wrap:wrap}
+.rpt-history-round-count{font-size:13px;font-weight:600;color:var(--t1)}
+.rpt-history-round-meta{margin-left:auto;font-size:12px;color:var(--t3)}
 .rpt-drawer-success{display:flex;align-items:flex-start;gap:11px;padding:13px 16px;border-radius:11px;background:#E8F3DC;border:.5px solid rgba(59,91,20,.28);animation:rptSuccessIn .32s cubic-bezier(.22,.8,.32,1)}
 @keyframes rptSuccessIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 .rpt-drawer-success-check{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:#3B5B14;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-top:1px}

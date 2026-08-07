@@ -17,7 +17,8 @@ public record ReportDetail(
         LocalDateTime firstReportedAt,
         LocalDateTime lastReportedAt,
         ReportReason mainReason,
-        String snapshot
+        String snapshot,
+        LocalDateTime handledAt
 ) {
 
     public static ReportDetail from(ReportDetailProjection p) {
@@ -32,7 +33,8 @@ public record ReportDetail(
                 p.getFirstReportedAt(),
                 p.getLastReportedAt(),
                 p.getMainReason(),
-                p.getSnapshot()
+                p.getSnapshot(),
+                p.getHandledAt()
         );
     }
 }

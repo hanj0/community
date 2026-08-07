@@ -117,17 +117,15 @@ export interface ReportedUserState {
 }
 
 /**
- * 신고 상세 드로어가 필요로 하는 데이터.
- * `GET /api/admin/reports/content/{targetType}/{targetId}` 응답 + 목록 행(summary)에서
- * 보충한 `reportedUsername`/`resolution`으로 채워진다.
+ * PENDING 신고 상세 드로어가 필요로 하는 데이터.
+ * `GET /api/admin/reports/content/{targetType}/{targetId}` 응답(PENDING 전용) + 목록 행(summary)에서
+ * 보충한 `reportedUsername`으로 채워진다.
  * 서버가 아직 피신고자 제재 이력(`userSanctionInfo`)을 내려주지 않아 관련 필드는 optional이다.
  */
 export interface ReportDetail {
   targetType: ReportTargetType;
   targetId: number;
   reportCount: number;
-  status: ReportStatus;
-  resolution?: ReportResolution | null;
   mainReason: ReportReason;
   firstReportedAt: string;
   lastReportedAt: string;
@@ -141,6 +139,23 @@ export interface ReportDetail {
   reportedUserPriorSanctions: number | null;
   /** 제재 수위 제안 문구. 근거 데이터가 없으면 null. */
   suggestion: string | null;
+}
+
+/**
+ * 처리완료 대상의 처리 차수 하나.
+ * `GET /api/admin/reports/history/{targetType}/{targetId}` 응답의 `histories` 원소.
+ */
+export interface ReportHistoryEntry {
+  targetType: ReportTargetType;
+  targetId: number;
+  handledAt: string;
+  resolution: ReportResolution;
+  reportCount: number;
+  mainReason: ReportReason;
+  firstReportedAt: string;
+  lastReportedAt: string;
+  handledBy: string;
+  handledMemo: string;
 }
 
 export interface ReportProcessResult {

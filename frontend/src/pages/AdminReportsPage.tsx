@@ -3,13 +3,15 @@ import { useSearchParams } from 'react-router-dom';
 import type {
   PageMeta,
   ReportDetail,
+  ReportHistoryEntry,
   ReportSortType,
   ReportStatus,
   ReportSummary,
 } from '../types';
-import { fetchAdminReportDetail, fetchAdminReports } from '../api/adminReports';
+import { fetchAdminReportDetail, fetchAdminReportHistory, fetchAdminReports } from '../api/adminReports';
 import Pagination from '../components/common/Pagination';
 import ReportDrawer from '../components/admin/ReportDrawer';
+import ReportHistoryDrawer from '../components/admin/ReportHistoryDrawer';
 import { REASON_LABEL, RESOLUTION_LABEL, TARGET_LABEL } from '../utils/reportLabels';
 
 const PAGE_SIZE = 20;
@@ -39,8 +41,14 @@ function StatusBadge({ report }: { report: ReportSummary }) {
     return <span className="rpt-status pending">대기</span>;
   }
   const resolution = report.resolution;
-  const label = resolution ? RESOLUTION_LABEL[resolution] : '처리완료';
-  return <span className={'rpt-status resolved' + (resolution === 'REJECTED' ? ' muted' : '')}>{label}</span>;
+  if (!resolution) {
+    return <span className="rpt-status done">처리완료</span>;
+  }
+  return (
+    <span className={'rpt-status resolved' + (resolution === 'REJECTED' ? ' muted' : '')}>
+      {RESOLUTION_LABEL[resolution]}
+    </span>
+  );
 }
 
 export default function AdminReportsPage() {
@@ -60,6 +68,7 @@ export default function AdminReportsPage() {
   const [leavingKey, setLeavingKey] = useState<string | null>(null);
 
   const [detail, setDetail] = useState<ReportDetail | null>(null);
+  const [history, setHistory] = useState<ReportHistoryEntry[] | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
 
@@ -87,15 +96,22 @@ export default function AdminReportsPage() {
   useEffect(() => {
     if (!activeReport) {
       setDetail(null);
+      setHistory(null);
       setDetailError(null);
       return;
     }
     let active = true;
     setDetail(null);
+    setHistory(null);
     setDetailError(null);
     setDetailLoading(true);
-    fetchAdminReportDetail(activeReport)
-      .then(d => { if (active) setDetail(d); })
+
+    const request = activeReport.status === 'PENDING'
+      ? fetchAdminReportDetail(activeReport).then(d => { if (active) setDetail(d); })
+      : fetchAdminReportHistory(activeReport.targetType, activeReport.targetId)
+        .then(h => { if (active) setHistory(h); });
+
+    request
       .catch((e: unknown) => {
         if (active) setDetailError(e instanceof Error ? e.message : '신고 상세를 불러올 수 없습니다.');
       })
@@ -230,7 +246,7 @@ export default function AdminReportsPage() {
 
       <Pagination current={currentPage} totalPages={meta.totalPages} onChange={handlePageChange} />
 
-      {activeReport && !detail && (
+      {activeReport && !detail && !history && (
         <>
           <div className="rpt-drawer-scrim" onClick={() => setActiveReport(null)} />
           <aside className="rpt-drawer" aria-label="신고 처리" role="dialog" aria-modal="true">
@@ -251,6 +267,16 @@ export default function AdminReportsPage() {
           onClose={() => setActiveReport(null)}
           onResolve={handleResolve}
           onNextPending={handleNextPending}
+        />
+      )}
+
+      {activeReport && history && (
+        <ReportHistoryDrawer
+          key={reportKey(activeReport)}
+          targetType={activeReport.targetType}
+          targetId={activeReport.targetId}
+          entries={history}
+          onClose={() => setActiveReport(null)}
         />
       )}
     </div>

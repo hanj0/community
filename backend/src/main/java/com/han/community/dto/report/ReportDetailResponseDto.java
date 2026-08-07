@@ -34,7 +34,7 @@ public record ReportDetailResponseDto(
                 reportDetail.mainReason(),
                 reportDetail.firstReportedAt(),
                 reportDetail.lastReportedAt(),
-                false,// reportDetail.firstReportedAt() < reportDetail.contentUpdatedAt()
+                reportDetail.contentUpdatedAt().isAfter(reportDetail.firstReportedAt()),
                 reportDetail.snapshot(),
                 reasonCounts,
                 reportDetail.reportedUserId(),

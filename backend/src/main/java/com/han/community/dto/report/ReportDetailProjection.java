@@ -19,4 +19,5 @@ public interface ReportDetailProjection {
     LocalDateTime getLastReportedAt();
     ReportReason getMainReason();
     String getSnapshot();
+    LocalDateTime getHandledAt();
 }

@@ -10,7 +10,6 @@ import type {
 import {
   CONTENT_ACTION_LABEL,
   REASON_LABEL,
-  RESOLUTION_LABEL,
   TARGET_LABEL,
   USER_ACTION_LABEL,
   USER_ACTION_REASON_LABEL,
@@ -96,7 +95,6 @@ export default function ReportDrawer({
   const nextBtnRef = useRef<HTMLButtonElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
-  const isHistory = detail.status === 'RESOLVED';
   const showResultView = result !== null;
   const contentReasonDisabled = contentAction === 'REJECTED';
   const userReasonDisabled = userAction === 'NONE';
@@ -194,7 +192,7 @@ export default function ReportDrawer({
             </div>
           </section>
 
-          {!showResultView && !isHistory && (
+          {!showResultView && (
             <>
               <section className="rpt-drawer-card">
                 <div className="rpt-drawer-act-head">
@@ -292,16 +290,6 @@ export default function ReportDrawer({
             </>
           )}
 
-          {isHistory && !showResultView && (
-            <section className="rpt-drawer-card rpt-drawer-history-note">
-              <span className="rpt-drawer-card-label">처리 결과</span>
-              <p>
-                {detail.resolution ? RESOLUTION_LABEL[detail.resolution] : '처리완료'}로 종결된 신고입니다.
-                세부 처리 이력(조치 사유, 제재, 메모)은 상세 API가 준비되는 대로 표시됩니다.
-              </p>
-            </section>
-          )}
-
           {showResultView && result && (
             <section className="rpt-drawer-card">
               <span className="rpt-drawer-card-label">처리 결과</span>
@@ -322,12 +310,12 @@ export default function ReportDrawer({
         </div>
 
         <div className="rpt-drawer-foot">
-          {!showResultView && !isHistory && (
+          {!showResultView && (
             <button className="rpt-drawer-commit" type="button" onClick={() => setConfirmOpen(true)}>
               {commitLabel}
             </button>
           )}
-          {(showResultView || isHistory) && (
+          {showResultView && (
             <div className="rpt-drawer-result-foot">
               {!hasNextPending && <span className="rpt-drawer-foot-note">대기 중인 신고가 없습니다</span>}
               <button ref={closeBtnRef} className="modal-btn" type="button" onClick={onClose}>닫기</button>

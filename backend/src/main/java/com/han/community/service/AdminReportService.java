@@ -1,10 +1,7 @@
 package com.han.community.service;
 
 import com.han.community.dto.UserSanctionInfo;
-import com.han.community.dto.report.ReportDetail;
-import com.han.community.dto.report.ReportDetailResponseDto;
-import com.han.community.dto.report.ReportReasonCount;
-import com.han.community.dto.report.ReportSummaryResponseDto;
+import com.han.community.dto.report.*;
 import com.han.community.entity.ReportStatus;
 import com.han.community.entity.ReportTargetType;
 import com.han.community.global.exception.BusinessException;
@@ -45,10 +42,10 @@ public class AdminReportService {
     }
 
     @Transactional
-    public ReportDetailResponseDto getReportDetail(ReportTargetType targetType, Long targetId, ReportStatus status) {
+    public ReportDetailResponseDto getReportDetail(ReportTargetType targetType, Long targetId) {
 
         ReportDetail reportDetail = ReportDetail.from(
-                reportRepository.findReportDetail(targetType, targetId)
+                reportRepository.findReportDetail(targetType, targetId, false)
                         .orElseThrow(() -> new IllegalStateException("ReportDetail must exist"))
         );
 
@@ -57,4 +54,16 @@ public class AdminReportService {
 
         return ReportDetailResponseDto.from(reportDetail, reasonCounts, userSanctionInfo);
     }
+
+    @Transactional
+    public ReportHistoryListResponseDto getReportHistory(ReportTargetType targetType, Long targetId) {
+
+        List<ReportHistoryResponseDto> reportHistories =
+                reportRepository.findReportHistoryList(targetType, targetId).stream()
+                        .map(p -> ReportHistoryResponseDto.from(p))
+                        .toList();
+
+        return ReportHistoryListResponseDto.from(reportHistories);
+    }
+
 }

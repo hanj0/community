@@ -3,6 +3,8 @@ package com.han.community.service;
 import com.han.community.dto.report.ReportRequestDto;
 import com.han.community.dto.report.ReportResponseDto;
 import com.han.community.entity.*;
+import com.han.community.entity.report.Report;
+import com.han.community.entity.report.ReportTargetType;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.CommentRepository;
@@ -24,7 +26,7 @@ public class ReportService {
     public ReportResponseDto report(Long userId, ReportRequestDto requestDto) {
 
         if(requestDto.reason().requiresDetail() && (requestDto.reasonDetail() == null || requestDto.reasonDetail().isBlank()))
-            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+            throw new BusinessException(ErrorCode.DETAIL_REQUIRED);
 
         Object target = getTarget(requestDto.targetType(), requestDto.targetId());
 

@@ -1,12 +1,14 @@
 package com.han.community.repository;
 
 import com.han.community.dto.report.*;
-import com.han.community.entity.Report;
-import com.han.community.entity.ReportStatus;
-import com.han.community.entity.ReportTargetType;
+import com.han.community.entity.report.Report;
+import com.han.community.entity.report.ReportResolution;
+import com.han.community.entity.report.ReportStatus;
+import com.han.community.entity.report.ReportTargetType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,44 +16,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ReportRepository extends JpaRepository<Report, Long> {
-
-    @Query(value = """
-SELECT
-    summary.report_count AS reportCount,
-    summary.target_type AS targetType,
-    summary.target_id AS targetId,
-    COALESCE(p.content, c.content) AS targetPreview,
-    summary.reported_user_id AS reportedUserId,
-    u.username AS reportedUsername,
-    summary.main_reason AS mainReason,
-    summary.last_reported_at AS lastReportedAt,
-    summary.status AS status
-FROM
-    (SELECT
-        COUNT(*) AS report_count,
-        r.target_type,
-        r.target_id,
-        r.reported_user_id,
-        r.status,
-        MAX(r.created_at) AS last_reported_at,
-        MODE() within GROUP (ORDER BY reason) AS main_reason
-    FROM Report r
-    GROUP BY r.target_type, r.target_id, r.reported_user_id, r.status) AS summary
-INNER JOIN Users u ON u.id = summary.reported_user_id
-LEFT JOIN Post p ON summary.target_type = 'POST' AND p.id = summary.target_id
-LEFT JOIN Comment c ON summary.target_type = 'COMMENT' AND c.id = summary.target_id
-WHERE (CAST(:status AS text) IS NULL OR summary.status = :status)
-""",
-countQuery = """
-SELECT COUNT(*)
-FROM(
-    SELECT r.status
-    FROM report r
-    GROUP BY r.target_type, r.target_id, r.reported_user_id, r.status
-    ) AS summary
-WHERE (CAST(:status AS text) IS NULL OR summary.status = :status)
-""", nativeQuery = true)
-    Page<ReportSummaryResponseProjection> findReportPageInternal_v1(@Param("status")String status, Pageable pageable);
 
     @Query(value = """
 SELECT
@@ -97,6 +61,7 @@ FROM (
 SELECT
     COALESCE(p.updated_at, c.updated_at) content_updated_at,
     COALESCE(p.content, c.content) content,
+    s.reportIds reportIds,
     s.report_count reportCount,
     s.target_type targetType,
     s.target_id targetId,
@@ -109,6 +74,7 @@ SELECT
     s.handled_at handledAt
 FROM (
 	SELECT
+	    STRING_AGG(CAST(r.id AS text), ',' ORDER BY r.created_at) AS reportIds,
 		COUNT(r.id) report_count,
 		r.target_type,
 		r.target_id,
@@ -117,7 +83,7 @@ FROM (
 		MIN(r.created_at) first_reported_at,
 		MAX(r.created_at) last_reported_at,
 		MODE() WITHIN GROUP (ORDER BY reason) main_reason,
-		(ARRAY_AGG(r.target_content_snapshot ORDER BY created_at ASC))[1] AS snapshot,
+		(ARRAY_AGG(r.target_content_snapshot ORDER BY r.created_at ASC))[1] AS snapshot,
 	    r.handled_at
 	FROM Report r
 	WHERE r.target_type = :targetType
@@ -177,19 +143,18 @@ ORDER BY COUNT(r) DESC
 """)
     List<ReportReasonCount> findReportReasonCount(@Param("targetType")ReportTargetType targetType, @Param("targetId")Long targetId);
 
+    @Modifying
     @Query("""
-SELECT
-    handledAt,
-    r.reason,
-    COUNT(r) reasonCount
-FROM Report r
-WHERE r.targetType = :targetType
-    AND r.targetId = :targetId
-GROUP BY r.handledAt, r.reason
-ORDER BY handledAt, COUNT(r) DESC
+UPDATE Report r
+SET r.status = 'RESOLVED',
+    r.resolution = :resolution,
+    r.handledAt = CURRENT_TIMESTAMP,
+    r.handledBy = :adminId,
+    r.handledMemo = :memo
+WHERE r.id IN :ids
+    AND r.status = 'PENDING'
 """)
-    List<ReportReasonCount> findReportHistoryReasonCount(@Param("targetType")ReportTargetType targetType, @Param("targetId")Long targetId);
-
+    int updateStatusAndResolutionByIds(@Param("ids")List<Long> ids, @Param("resolution")ReportResolution resolution, @Param("adminId")Long adminId, @Param("memo")String memo);
 
 
     default Page<ReportSummaryResponseProjection> findReportPage(ReportStatus status, Pageable pageable) {

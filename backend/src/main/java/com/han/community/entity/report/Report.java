@@ -1,5 +1,6 @@
-package com.han.community.entity;
+package com.han.community.entity.report;
 
+import com.han.community.entity.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

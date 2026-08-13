@@ -4,6 +4,7 @@ import type {
   ReportHistoryEntry,
   ReportReason,
   ReportReasonCount,
+  ReportResolveRequest,
   ReportSortType,
   ReportStatus,
   ReportSummary,
@@ -46,6 +47,7 @@ export async function fetchAdminReports(params: {
 interface RawReportDetail {
   targetType: ReportTargetType;
   targetId: number;
+  reportIds: number[];
   reportCount: number;
   mainReason: ReportReason;
   firstReportedAt: string;
@@ -57,13 +59,13 @@ interface RawReportDetail {
 }
 
 /**
- * PENDING 신고 상세. GET /api/admin/reports/content/{targetType}/{targetId} → SuccessResponse 래핑.
+ * PENDING 신고 상세. GET /api/admin/reports/{targetType}/{targetId}/pending → SuccessResponse 래핑.
  * 이 엔드포인트는 PENDING 전용이라 쿼리파라미터가 없다. 처리완료는 fetchAdminReportHistory를 쓴다.
  * 서버가 아직 피신고자 닉네임을 안 내려줘서, 목록 행(summary)에서 보충한다.
  */
 export async function fetchAdminReportDetail(summary: ReportSummary): Promise<ReportDetail> {
   const { targetType, targetId } = summary;
-  const res = await fetch(`/api/admin/reports/content/${targetType}/${targetId}`, {
+  const res = await fetch(`/api/admin/reports/${targetType}/${targetId}/pending`, {
     credentials: 'include',
   });
 
@@ -85,6 +87,7 @@ export async function fetchAdminReportDetail(summary: ReportSummary): Promise<Re
   return {
     targetType: raw.targetType,
     targetId: raw.targetId,
+    reportIds: raw.reportIds,
     reportCount: raw.reportCount,
     mainReason: raw.mainReason,
     firstReportedAt: raw.firstReportedAt,
@@ -101,13 +104,13 @@ export async function fetchAdminReportDetail(summary: ReportSummary): Promise<Re
 }
 
 /**
- * 처리완료 대상의 처리 이력. GET /api/admin/reports/history/{targetType}/{targetId} → SuccessResponse 래핑.
+ * 처리완료 대상의 처리 이력. GET /api/admin/reports/{targetType}/{targetId}/resolutions → SuccessResponse 래핑.
  */
 export async function fetchAdminReportHistory(
   targetType: ReportTargetType,
   targetId: number,
 ): Promise<ReportHistoryEntry[]> {
-  const res = await fetch(`/api/admin/reports/history/${targetType}/${targetId}`, {
+  const res = await fetch(`/api/admin/reports/${targetType}/${targetId}/resolutions`, {
     credentials: 'include',
   });
 
@@ -126,4 +129,33 @@ export async function fetchAdminReportHistory(
   const body = await res.json();
   const raw = body.data as { histories: ReportHistoryEntry[]; totalCount: number };
   return raw.histories;
+}
+
+/**
+ * 신고 처리(콘텐츠 조치 + 선택적 유저 제재).
+ * POST /api/admin/reports/{targetType}/{targetId}/resolutions → 본문 없이 200.
+ */
+export async function resolveReport(
+  targetType: ReportTargetType,
+  targetId: number,
+  request: ReportResolveRequest,
+): Promise<void> {
+  const res = await fetch(`/api/admin/reports/${targetType}/${targetId}/resolutions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(request),
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      throw new Error('로그인이 필요합니다.');
+    }
+    if (res.status === 403) {
+      throw new Error('관리자 권한이 필요합니다.');
+    }
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error?.message ?? '신고 처리에 실패했습니다.');
+  }
 }

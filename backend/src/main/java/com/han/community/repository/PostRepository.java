@@ -102,4 +102,7 @@ JOIN b.post p
 WHERE b.user.id = :userId
 """)
     Page<Post> findUserBookmarks(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("SELECT p.user.id FROM Post p WHERE p.id = :id")
+    Long findUserIdById(@Param("id")Long id);
 }

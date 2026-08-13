@@ -1,7 +1,6 @@
-package com.han.community.entity;
+package com.han.community.entity.report;
 
 public enum ReportResolution {
     REJECTED,
     CONTENT_DELETED,
-    TARGET_ALREADY_DELETED
 }

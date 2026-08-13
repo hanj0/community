@@ -30,7 +30,10 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 게시글입니다."),
 
     // 댓글
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다.")
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 댓글입니다."),
+
+    // 신고
+    DETAIL_REQUIRED(HttpStatus.BAD_REQUEST, "상세 입력이 필요합니다.")
     ;
 
     private final HttpStatus status;

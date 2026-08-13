@@ -394,6 +394,7 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .rpt-drawer-flabel{font-size:12.5px;color:var(--t2)}
 .rpt-drawer-off-why{font-size:12px;color:var(--t3)}
 .rpt-drawer-seg{display:flex;flex-wrap:wrap;gap:6px}
+.rpt-drawer-seg-group-label{font-size:11px;color:var(--t3)}
 .rpt-drawer-seg-btn{font-size:13px;padding:7px 12px;border-radius:8px;border:.5px solid var(--b2);background:var(--bg);color:var(--t2);transition:background .12s,border-color .12s,color .12s}
 .rpt-drawer-seg-btn:hover:not(:disabled){background:var(--bg2);color:var(--t1)}
 .rpt-drawer-seg-btn[aria-pressed="true"]{background:var(--t1);border-color:var(--t1);color:var(--bg);font-weight:500}
@@ -402,10 +403,14 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .rpt-drawer-field.is-off .rpt-drawer-seg-btn{opacity:.4;cursor:not-allowed;background:var(--bg);border-color:var(--b);color:var(--t3);font-weight:400}
 .rpt-drawer-textarea{font:inherit;font-size:13px;color:var(--t1);background:var(--bg);border:.5px solid var(--b2);border-radius:8px;padding:9px 11px;width:100%;min-height:58px;resize:vertical;line-height:1.6}
 .rpt-drawer-textarea::placeholder{color:var(--t3)}
+.rpt-drawer-textarea:disabled{opacity:.4;cursor:not-allowed}
+.rpt-drawer-select{font:inherit;font-size:13px;color:var(--t1);background:var(--bg);border:.5px solid var(--b2);border-radius:8px;padding:9px 11px;width:100%}
+.rpt-drawer-select:disabled{opacity:.4;cursor:not-allowed}
 .rpt-drawer-suggest{margin:11px 16px 0;padding:9px 12px;border-radius:9px;background:var(--bg2);border:.5px solid var(--b);font-size:12.5px;color:var(--t2);line-height:1.55}
 .rpt-drawer-foot{border-top:.5px solid var(--b);background:var(--bg);padding:13px 16px}
 .rpt-drawer-commit{width:100%;font-size:13.5px;font-weight:600;padding:10px 15px;border-radius:8px;border:.5px solid var(--red);background:var(--red);color:#fff}
-.rpt-drawer-commit:hover{opacity:.9}
+.rpt-drawer-commit:hover:not(:disabled){opacity:.9}
+.rpt-drawer-commit:disabled{opacity:.4;cursor:not-allowed}
 .rpt-drawer-result-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%}
 .rpt-drawer-foot-note{font-size:12.5px;color:var(--t3);margin-right:auto}
 .rpt-history{display:flex;flex-direction:column;gap:10px}

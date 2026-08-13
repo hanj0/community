@@ -1,18 +1,18 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import type {
-  ReportContentAction,
   ReportDetail,
-  ReportProcessResult,
-  ReportReason,
-  ReportUserAction,
-  ReportUserActionReason,
+  ReportResolution,
+  ReportResolveRequest,
+  SanctionReason,
+  SanctionType,
 } from '../../types';
 import {
-  CONTENT_ACTION_LABEL,
   REASON_LABEL,
+  RESOLUTION_LABEL,
+  SANCTION_REASON_GROUPS,
+  SANCTION_REASON_LABEL,
+  SANCTION_TYPE_LABEL,
   TARGET_LABEL,
-  USER_ACTION_LABEL,
-  USER_ACTION_REASON_LABEL,
 } from '../../utils/reportLabels';
 
 interface ReportDrawerProps {
@@ -20,31 +20,22 @@ interface ReportDrawerProps {
   hasNextPending: boolean;
   nextPendingCount: number;
   onClose: () => void;
-  onResolve: (result: ReportProcessResult) => void;
+  onResolve: (result: ReportResolveRequest) => Promise<void>;
   onNextPending: () => void;
 }
 
-const CONTENT_ACTION_OPTIONS: { value: ReportContentAction; label: string; danger?: boolean }[] = [
-  { value: 'REJECTED', label: CONTENT_ACTION_LABEL.REJECTED },
-  { value: 'CONTENT_DELETED', label: CONTENT_ACTION_LABEL.CONTENT_DELETED, danger: true },
-  { value: 'TARGET_ALREADY_DELETED', label: CONTENT_ACTION_LABEL.TARGET_ALREADY_DELETED },
+type SanctionChoice = SanctionType | 'NONE';
+
+const CONTENT_ACTION_OPTIONS: { value: ReportResolution; label: string; danger?: boolean }[] = [
+  { value: 'REJECTED', label: RESOLUTION_LABEL.REJECTED },
+  { value: 'CONTENT_DELETED', label: RESOLUTION_LABEL.CONTENT_DELETED, danger: true },
 ];
 
-const CONTENT_REASON_OPTIONS: ReportReason[] = ['SEXUAL', 'SPAM', 'ABUSE', 'ILLEGAL', 'ETC'];
-
-const USER_ACTION_OPTIONS: { value: ReportUserAction; label: string; danger?: boolean }[] = [
-  { value: 'NONE', label: USER_ACTION_LABEL.NONE },
-  { value: 'WARNING', label: USER_ACTION_LABEL.WARNING },
-  { value: 'SUSPEND_7D', label: USER_ACTION_LABEL.SUSPEND_7D, danger: true },
-  { value: 'PERMANENT_BAN', label: USER_ACTION_LABEL.PERMANENT_BAN, danger: true },
-];
-
-const USER_REASON_OPTIONS: ReportUserActionReason[] = [
-  'REPEATED',
-  'SEVERE_ONCE',
-  'MULTIPLE_CONTENT',
-  'COMBINED',
-  'ETC',
+const SANCTION_TYPE_OPTIONS: { value: SanctionChoice; label: string; danger?: boolean }[] = [
+  { value: 'NONE', label: '제재 없음' },
+  { value: 'WARNING', label: SANCTION_TYPE_LABEL.WARNING },
+  { value: 'WRITE_BLOCK', label: SANCTION_TYPE_LABEL.WRITE_BLOCK, danger: true },
+  { value: 'BAN', label: SANCTION_TYPE_LABEL.BAN, danger: true },
 ];
 
 function Seg<T extends string>({
@@ -84,20 +75,36 @@ export default function ReportDrawer({
   onResolve,
   onNextPending,
 }: ReportDrawerProps) {
-  const [contentAction, setContentAction] = useState<ReportContentAction>('CONTENT_DELETED');
-  const [contentReason, setContentReason] = useState<ReportReason>(detail.mainReason);
-  const [userAction, setUserAction] = useState<ReportUserAction>('NONE');
-  const [userReason, setUserReason] = useState<ReportUserActionReason>('REPEATED');
-  const [memo, setMemo] = useState('');
+  const [contentAction, setContentAction] = useState<ReportResolution>('CONTENT_DELETED');
+  const [reasonGroup, setReasonGroup] = useState('');
+  const [reason, setReason] = useState<SanctionReason | ''>('');
+  const [reasonDetail, setReasonDetail] = useState('');
+  const [sanctionType, setSanctionType] = useState<SanctionChoice>('NONE');
+  const [durationDays, setDurationDays] = useState('');
+  const [sanctionMemo, setSanctionMemo] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [result, setResult] = useState<ReportProcessResult | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [result, setResult] = useState<ReportResolveRequest | null>(null);
 
   const nextBtnRef = useRef<HTMLButtonElement>(null);
   const closeBtnRef = useRef<HTMLButtonElement>(null);
 
   const showResultView = result !== null;
-  const contentReasonDisabled = contentAction === 'REJECTED';
-  const userReasonDisabled = userAction === 'NONE';
+  const reasonDisabled = contentAction === 'REJECTED';
+  const activeGroup = SANCTION_REASON_GROUPS.find(g => g.label === reasonGroup) ?? null;
+  const sanctionActive = sanctionType !== 'NONE';
+  const durationRequired = sanctionType === 'WRITE_BLOCK';
+
+  const handleReasonGroupChange = (label: string) => {
+    setReasonGroup(label);
+    setReason('');
+  };
+
+  const canSubmit =
+    (reasonDisabled || reason !== '') &&
+    reasonDetail.trim().length > 0 &&
+    (!sanctionActive || (sanctionMemo.trim().length > 0 && (!durationRequired || Number(durationDays) > 0)));
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -114,22 +121,38 @@ export default function ReportDrawer({
     (hasNextPending ? nextBtnRef.current : closeBtnRef.current)?.focus();
   }, [result, hasNextPending]);
 
-  const handleConfirm = () => {
-    const built: ReportProcessResult = {
-      contentAction,
-      contentActionReason: contentReasonDisabled ? null : contentReason,
-      userAction,
-      userActionReason: userReasonDisabled ? null : userReason,
-      memo: memo.trim(),
-    };
-    setResult(built);
-    setConfirmOpen(false);
-    onResolve(built);
+  const buildRequest = (): ReportResolveRequest => ({
+    reportIds: detail.reportIds,
+    contentActionType: contentAction,
+    reason: reasonDisabled ? null : (reason as SanctionReason),
+    reasonDetail: reasonDetail.trim(),
+    sanction: sanctionActive
+      ? {
+          sanctionType,
+          durationDays: durationRequired ? Number(durationDays) : null,
+          memo: sanctionMemo.trim(),
+        }
+      : null,
+  });
+
+  const handleConfirm = async () => {
+    const built = buildRequest();
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await onResolve(built);
+      setResult(built);
+      setConfirmOpen(false);
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : '처리에 실패했습니다.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const commitLabel = [
-    CONTENT_ACTION_LABEL[contentAction],
-    userAction !== 'NONE' ? USER_ACTION_LABEL[userAction] : null,
+    RESOLUTION_LABEL[contentAction],
+    sanctionActive ? SANCTION_TYPE_LABEL[sanctionType] : null,
     `신고 ${detail.reportCount}건 종결`,
   ]
     .filter(Boolean)
@@ -142,7 +165,7 @@ export default function ReportDrawer({
       <div className="rpt-drawer-scrim" onClick={() => { if (!confirmOpen) onClose(); }} />
       <aside className="rpt-drawer" aria-label="신고 처리" role="dialog" aria-modal="true">
         <div className="rpt-drawer-head">
-          <span className="rpt-drawer-tag crit">{detail.mainReason}</span>
+          <span className="rpt-drawer-tag crit">{REASON_LABEL[detail.mainReason]}</span>
           <span className="rpt-drawer-id">
             {TARGET_LABEL[detail.targetType]} <b>#{detail.targetId}</b>
           </span>
@@ -206,28 +229,40 @@ export default function ReportDrawer({
                     <span className="rpt-drawer-flabel">조치</span>
                     <Seg options={CONTENT_ACTION_OPTIONS} value={contentAction} onChange={setContentAction} />
                   </div>
-                  <div className={'rpt-drawer-field' + (contentReasonDisabled ? ' is-off' : '')}>
+                  <div className={'rpt-drawer-field' + (reasonDisabled ? ' is-off' : '')}>
                     <span className="rpt-drawer-flabel">
-                      콘텐츠 조치 사유
-                      {contentReasonDisabled && (
+                      처리 사유
+                      {reasonDisabled && (
                         <span className="rpt-drawer-off-why"> — 반려는 위반이 아니라는 판단이라 사유를 고르지 않습니다</span>
                       )}
                     </span>
+                    <span className="rpt-drawer-seg-group-label">대분류</span>
                     <Seg
-                      options={CONTENT_REASON_OPTIONS.map(r => ({ value: r, label: REASON_LABEL[r] }))}
-                      value={contentReason}
-                      onChange={setContentReason}
-                      disabled={contentReasonDisabled}
+                      options={SANCTION_REASON_GROUPS.map(g => ({ value: g.label, label: g.label }))}
+                      value={reasonGroup}
+                      onChange={handleReasonGroupChange}
+                      disabled={reasonDisabled}
                     />
+                    {activeGroup && (
+                      <>
+                        <span className="rpt-drawer-seg-group-label">세부 사유</span>
+                        <Seg
+                          options={activeGroup.options.map(opt => ({ value: opt, label: SANCTION_REASON_LABEL[opt] }))}
+                          value={reason}
+                          onChange={setReason}
+                          disabled={reasonDisabled}
+                        />
+                      </>
+                    )}
                   </div>
                   <div className="rpt-drawer-field">
-                    <label className="rpt-drawer-flabel" htmlFor="rpt-content-memo">메모</label>
+                    <label className="rpt-drawer-flabel" htmlFor="rpt-reason-detail">처리 사유 상세</label>
                     <textarea
-                      id="rpt-content-memo"
+                      id="rpt-reason-detail"
                       className="rpt-drawer-textarea"
                       placeholder="판단 근거 — 이용자 항의 시 유일한 근거가 됩니다"
-                      value={memo}
-                      onChange={e => setMemo(e.target.value)}
+                      value={reasonDetail}
+                      onChange={e => setReasonDetail(e.target.value)}
                     />
                   </div>
                 </div>
@@ -259,30 +294,35 @@ export default function ReportDrawer({
                 <div className="rpt-drawer-act-body">
                   <div className="rpt-drawer-field">
                     <span className="rpt-drawer-flabel">제재 수위</span>
-                    <Seg options={USER_ACTION_OPTIONS} value={userAction} onChange={setUserAction} />
+                    <Seg options={SANCTION_TYPE_OPTIONS} value={sanctionType} onChange={setSanctionType} />
                   </div>
-                  <div className={'rpt-drawer-field' + (userReasonDisabled ? ' is-off' : '')}>
-                    <span className="rpt-drawer-flabel">
-                      유저 제재 사유
-                      {userReasonDisabled && (
-                        <span className="rpt-drawer-off-why"> — 제재 없음을 골라 사유가 필요하지 않습니다</span>
+                  {durationRequired && (
+                    <div className="rpt-drawer-field">
+                      <label className="rpt-drawer-flabel" htmlFor="rpt-duration">제한 기간(일)</label>
+                      <input
+                        id="rpt-duration"
+                        type="number"
+                        min={1}
+                        className="rpt-drawer-select"
+                        value={durationDays}
+                        onChange={e => setDurationDays(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div className={'rpt-drawer-field' + (sanctionActive ? '' : ' is-off')}>
+                    <label className="rpt-drawer-flabel" htmlFor="rpt-sanction-memo">
+                      제재 메모
+                      {!sanctionActive && (
+                        <span className="rpt-drawer-off-why"> — 제재 없음을 골라 메모가 필요하지 않습니다</span>
                       )}
-                    </span>
-                    <Seg
-                      options={USER_REASON_OPTIONS.map(r => ({ value: r, label: USER_ACTION_REASON_LABEL[r] }))}
-                      value={userReason}
-                      onChange={setUserReason}
-                      disabled={userReasonDisabled}
-                    />
-                  </div>
-                  <div className="rpt-drawer-field">
-                    <label className="rpt-drawer-flabel" htmlFor="rpt-user-memo">메모</label>
+                    </label>
                     <textarea
-                      id="rpt-user-memo"
+                      id="rpt-sanction-memo"
                       className="rpt-drawer-textarea"
                       placeholder="수위 판단 근거 — 다음 제재 때 이력으로 남습니다"
-                      value={memo}
-                      onChange={e => setMemo(e.target.value)}
+                      value={sanctionMemo}
+                      disabled={!sanctionActive}
+                      onChange={e => setSanctionMemo(e.target.value)}
                     />
                   </div>
                 </div>
@@ -295,15 +335,20 @@ export default function ReportDrawer({
               <span className="rpt-drawer-card-label">처리 결과</span>
               <dl className="rpt-drawer-result">
                 <dt>콘텐츠</dt>
-                <dd className="strong">{CONTENT_ACTION_LABEL[result.contentAction]}</dd>
-                <dt>조치 사유</dt>
-                <dd>{result.contentActionReason ? REASON_LABEL[result.contentActionReason] : '—'}</dd>
+                <dd className="strong">{RESOLUTION_LABEL[result.contentActionType]}</dd>
+                <dt>처리 사유</dt>
+                <dd>{result.reason ? SANCTION_REASON_LABEL[result.reason] : '—'}</dd>
+                <dt>사유 상세</dt>
+                <dd>{result.reasonDetail || '—'}</dd>
                 <dt>유저 제재</dt>
-                <dd className="strong">{USER_ACTION_LABEL[result.userAction]}</dd>
-                <dt>제재 사유</dt>
-                <dd>{result.userActionReason ? USER_ACTION_REASON_LABEL[result.userActionReason] : '—'}</dd>
-                <dt>메모</dt>
-                <dd>{result.memo || '—'}</dd>
+                <dd className="strong">
+                  {result.sanction
+                    ? SANCTION_TYPE_LABEL[result.sanction.sanctionType] +
+                      (result.sanction.durationDays ? ` (${result.sanction.durationDays}일)` : '')
+                    : '제재 없음'}
+                </dd>
+                <dt>제재 메모</dt>
+                <dd>{result.sanction?.memo || '—'}</dd>
               </dl>
             </section>
           )}
@@ -311,7 +356,12 @@ export default function ReportDrawer({
 
         <div className="rpt-drawer-foot">
           {!showResultView && (
-            <button className="rpt-drawer-commit" type="button" onClick={() => setConfirmOpen(true)}>
+            <button
+              className="rpt-drawer-commit"
+              type="button"
+              disabled={!canSubmit}
+              onClick={() => setConfirmOpen(true)}
+            >
               {commitLabel}
             </button>
           )}
@@ -332,7 +382,7 @@ export default function ReportDrawer({
       {confirmOpen && (
         <div
           className="modal-overlay"
-          onClick={e => { if (e.target === e.currentTarget) setConfirmOpen(false); }}
+          onClick={e => { if (e.target === e.currentTarget && !submitting) setConfirmOpen(false); }}
         >
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="rpt-confirm-title">
             <h2 id="rpt-confirm-title" className="modal-title">이대로 확정할까요</h2>
@@ -341,17 +391,24 @@ export default function ReportDrawer({
             </p>
             <dl className="rpt-drawer-modal-summary">
               <dt>콘텐츠</dt>
-              <dd>{CONTENT_ACTION_LABEL[contentAction]}</dd>
-              <dt>조치 사유</dt>
-              <dd>{contentReasonDisabled ? '—' : REASON_LABEL[contentReason]}</dd>
+              <dd>{RESOLUTION_LABEL[contentAction]}</dd>
+              <dt>처리 사유</dt>
+              <dd>{reasonDisabled ? '—' : reason ? SANCTION_REASON_LABEL[reason] : '—'}</dd>
               <dt>유저 제재</dt>
-              <dd>{USER_ACTION_LABEL[userAction]}</dd>
-              <dt>제재 사유</dt>
-              <dd>{userReasonDisabled ? '—' : USER_ACTION_REASON_LABEL[userReason]}</dd>
+              <dd>
+                {sanctionActive
+                  ? SANCTION_TYPE_LABEL[sanctionType] + (durationRequired && durationDays ? ` (${durationDays}일)` : '')
+                  : '제재 없음'}
+              </dd>
             </dl>
+            {submitError && <p className="auth-err">{submitError}</p>}
             <div className="modal-actions">
-              <button className="modal-btn" type="button" onClick={() => setConfirmOpen(false)}>취소</button>
-              <button className="modal-btn primary" type="button" onClick={handleConfirm}>확정</button>
+              <button className="modal-btn" type="button" disabled={submitting} onClick={() => setConfirmOpen(false)}>
+                취소
+              </button>
+              <button className="modal-btn primary" type="button" disabled={submitting} onClick={handleConfirm}>
+                {submitting ? '처리 중...' : '확정'}
+              </button>
             </div>
           </div>
         </div>

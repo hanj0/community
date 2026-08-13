@@ -70,7 +70,16 @@ export interface NotificationItem {
 }
 
 export type ReportTargetType = 'POST' | 'COMMENT';
-export type ReportReason = 'SPAM' | 'ABUSE' | 'SEXUAL' | 'ILLEGAL' | 'ETC';
+export type ReportReason =
+  | 'SPAM'
+  | 'ABUSE'
+  | 'SEXUAL'
+  | 'VIOLENCE'
+  | 'DISGUSTING'
+  | 'PRIVACY'
+  | 'ILLEGAL'
+  | 'COPYRIGHT'
+  | 'OTHER';
 
 export interface ReportRequest {
   targetType: ReportTargetType;
@@ -83,7 +92,7 @@ export interface ReportRequest {
 export type ReportStatus = 'PENDING' | 'RESOLVED';
 
 /** RESOLVED 안에서의 처리 결과. PENDING인 신고에는 값이 없다. */
-export type ReportResolution = 'REJECTED' | 'CONTENT_DELETED' | 'TARGET_ALREADY_DELETED';
+export type ReportResolution = 'REJECTED' | 'CONTENT_DELETED';
 
 export type ReportSortType = 'count' | 'latest';
 
@@ -102,10 +111,6 @@ export interface ReportSummary {
   resolution?: ReportResolution | null;
 }
 
-export type ReportContentAction = 'REJECTED' | 'CONTENT_DELETED' | 'TARGET_ALREADY_DELETED';
-export type ReportUserAction = 'NONE' | 'WARNING' | 'SUSPEND_7D' | 'PERMANENT_BAN';
-export type ReportUserActionReason = 'REPEATED' | 'SEVERE_ONCE' | 'MULTIPLE_CONTENT' | 'COMBINED' | 'ETC';
-
 export interface ReportReasonCount {
   reason: ReportReason;
   reasonCount: number;
@@ -118,13 +123,15 @@ export interface ReportedUserState {
 
 /**
  * PENDING 신고 상세 드로어가 필요로 하는 데이터.
- * `GET /api/admin/reports/content/{targetType}/{targetId}` 응답(PENDING 전용) + 목록 행(summary)에서
+ * `GET /api/admin/reports/{targetType}/{targetId}/pending` 응답(PENDING 전용) + 목록 행(summary)에서
  * 보충한 `reportedUsername`으로 채워진다.
  * 서버가 아직 피신고자 제재 이력(`userSanctionInfo`)을 내려주지 않아 관련 필드는 optional이다.
  */
 export interface ReportDetail {
   targetType: ReportTargetType;
   targetId: number;
+  /** 이 대상에 걸린 신고 id 목록. 처리 API(POST resolutions) 호출 시 그대로 실어 보낸다. */
+  reportIds: number[];
   reportCount: number;
   mainReason: ReportReason;
   firstReportedAt: string;
@@ -143,7 +150,7 @@ export interface ReportDetail {
 
 /**
  * 처리완료 대상의 처리 차수 하나.
- * `GET /api/admin/reports/history/{targetType}/{targetId}` 응답의 `histories` 원소.
+ * `GET /api/admin/reports/{targetType}/{targetId}/resolutions` 응답의 `histories` 원소.
  */
 export interface ReportHistoryEntry {
   targetType: ReportTargetType;
@@ -158,12 +165,46 @@ export interface ReportHistoryEntry {
   handledMemo: string;
 }
 
-export interface ReportProcessResult {
-  contentAction: ReportContentAction;
-  contentActionReason: ReportReason | null;
-  userAction: ReportUserAction;
-  userActionReason: ReportUserActionReason | null;
-  memo: string;
+/** 관리자가 신고 처리 시 고르는 제재 사유. 신고 등록 시의 {@link ReportReason}과는 다른 카테고리다. */
+export type SanctionReason =
+  | 'SPAM_ADVERTISING'
+  | 'SPAM_FLOODING'
+  | 'SPAM_BOT'
+  | 'ABUSE_INSULT'
+  | 'ABUSE_HARASSMENT'
+  | 'ABUSE_HATE'
+  | 'ABUSE_THREAT'
+  | 'CONTENT_SEXUAL'
+  | 'CONTENT_VIOLENCE'
+  | 'CONTENT_DISGUSTING'
+  | 'CONTENT_ILLEGAL'
+  | 'CONTENT_FALSE_INFO'
+  | 'PRIVACY_EXPOSURE'
+  | 'COPYRIGHT_VIOLATION'
+  | 'IMPERSONATION'
+  | 'MULTI_ACCOUNT'
+  | 'BAN_EVASION'
+  | 'REPORT_ABUSE'
+  | 'RULE_VIOLATION';
+
+export type SanctionType = 'WARNING' | 'WRITE_BLOCK' | 'BAN';
+
+/**
+ * 신고 처리 요청. `POST /api/admin/reports/{targetType}/{targetId}/resolutions` 바디.
+ * 콘텐츠 조치(`contentActionType`)와 유저 제재(`sanction`)는 `reason` 하나를 공유한다.
+ * 반려(`REJECTED`)는 위반 판단이 아니므로 `reason`이 없다.
+ */
+export interface ReportResolveRequest {
+  reportIds: number[];
+  contentActionType: ReportResolution;
+  reason: SanctionReason | null;
+  reasonDetail: string;
+  /** 유저 제재를 안 할 경우 null. */
+  sanction: {
+    sanctionType: SanctionType;
+    durationDays: number | null;
+    memo: string;
+  } | null;
 }
 
 export type SortType = 'latest' | 'likes' | 'comments' | 'views';

@@ -1,14 +1,17 @@
 package com.han.community.dto.report;
 
-import com.han.community.entity.ReportReason;
-import com.han.community.entity.ReportStatus;
-import com.han.community.entity.ReportTargetType;
+import com.han.community.entity.report.ReportReason;
+import com.han.community.entity.report.ReportStatus;
+import com.han.community.entity.report.ReportTargetType;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 public record ReportDetail(
         LocalDateTime contentUpdatedAt,
         String content,
+        List<Long> reportIds,
         Long reportCount,
         ReportTargetType targetType,
         Long targetId,
@@ -25,6 +28,7 @@ public record ReportDetail(
         return new ReportDetail(
                 p.getContentUpdatedAt(),
                 p.getContent(),
+                parseIds(p.getReportIds()),
                 p.getReportCount(),
                 p.getTargetType(),
                 p.getTargetId(),
@@ -36,5 +40,13 @@ public record ReportDetail(
                 p.getSnapshot(),
                 p.getHandledAt()
         );
+    }
+
+    private static List<Long> parseIds(String ids) {
+
+        if(ids == null || ids.isBlank()) return List.of();
+        return Arrays.stream(ids.split(","))
+                .map(str -> Long.valueOf(str))
+                .toList();
     }
 }

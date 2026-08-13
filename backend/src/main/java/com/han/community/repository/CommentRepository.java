@@ -67,4 +67,7 @@ WHERE c.user.id = :userId
     @Modifying
     @Query("UPDATE Comment c SET c.dislikeCount = c.dislikeCount - 1 WHERE c.id = :commentId")
     void decrementDislikeCount(@Param("commentId") Long commentId);
+
+    @Query("SELECT c.user.id FROM Comment c WHERE c.id = :id")
+    Long findUserIdById(@Param("id")Long id);
 }

@@ -1,8 +1,8 @@
 package com.han.community.dto;
 
-import com.han.community.entity.Notification;
-import com.han.community.entity.NotificationType;
-import com.han.community.entity.NotificationTargetType;
+import com.han.community.entity.notification.Notification;
+import com.han.community.entity.notification.NotificationType;
+import com.han.community.entity.notification.NotificationTargetType;
 
 import java.time.LocalDateTime;
 

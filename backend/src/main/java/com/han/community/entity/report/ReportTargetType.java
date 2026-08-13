@@ -1,4 +1,4 @@
-package com.han.community.entity;
+package com.han.community.entity.report;
 
 public enum ReportTargetType {
 

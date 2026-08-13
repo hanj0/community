@@ -4,11 +4,17 @@ import type {
   PageMeta,
   ReportDetail,
   ReportHistoryEntry,
+  ReportResolveRequest,
   ReportSortType,
   ReportStatus,
   ReportSummary,
 } from '../types';
-import { fetchAdminReportDetail, fetchAdminReportHistory, fetchAdminReports } from '../api/adminReports';
+import {
+  fetchAdminReportDetail,
+  fetchAdminReportHistory,
+  fetchAdminReports,
+  resolveReport,
+} from '../api/adminReports';
 import Pagination from '../components/common/Pagination';
 import ReportDrawer from '../components/admin/ReportDrawer';
 import ReportHistoryDrawer from '../components/admin/ReportHistoryDrawer';
@@ -142,11 +148,12 @@ export default function AdminReportsPage() {
   const hasNextPending = status === 'PENDING' && reports.some(r => reportKey(r) !== activeKey);
   const nextPendingCount = status === 'PENDING' ? reports.filter(r => reportKey(r) !== activeKey).length : 0;
 
-  const handleResolve = () => {
+  const handleResolve = async (request: ReportResolveRequest) => {
     if (!activeReport) return;
+    await resolveReport(activeReport.targetType, activeReport.targetId, request);
+
     const key = reportKey(activeReport);
     setLeavingKey(key);
-    // TODO: 처리 API가 준비되면 여기서 실제 요청을 보낸다. 지금은 목록 상태만 갱신한다.
     window.setTimeout(() => {
       setReports(prev => prev.filter(r => reportKey(r) !== key));
       setMeta(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));

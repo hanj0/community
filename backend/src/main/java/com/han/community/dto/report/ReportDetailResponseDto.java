@@ -1,9 +1,9 @@
 package com.han.community.dto.report;
 
 import com.han.community.dto.UserSanctionInfo;
-import com.han.community.entity.ReportReason;
-import com.han.community.entity.ReportStatus;
-import com.han.community.entity.ReportTargetType;
+import com.han.community.entity.report.ReportReason;
+import com.han.community.entity.report.ReportStatus;
+import com.han.community.entity.report.ReportTargetType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,6 +11,7 @@ import java.util.List;
 public record ReportDetailResponseDto(
         ReportTargetType targetType,
         Long targetId,
+        List<Long> reportIds,
         long reportCount,
         ReportStatus status,
         ReportReason mainReason,
@@ -29,6 +30,7 @@ public record ReportDetailResponseDto(
         return new ReportDetailResponseDto(
                 reportDetail.targetType(),
                 reportDetail.targetId(),
+                reportDetail.reportIds(),
                 reportDetail.reportCount(),
                 reportDetail.status(),
                 reportDetail.mainReason(),

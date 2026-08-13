@@ -1,5 +1,6 @@
-package com.han.community.entity;
+package com.han.community.entity.notification;
 
+import com.han.community.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

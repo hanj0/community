@@ -2,6 +2,8 @@ package com.han.community.service;
 
 import com.han.community.dto.CommentReactionDto;
 import com.han.community.entity.*;
+import com.han.community.entity.notification.NotificationTargetType;
+import com.han.community.entity.notification.NotificationType;
 import com.han.community.event.NotificationEvent;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;

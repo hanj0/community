@@ -1,7 +1,7 @@
 package com.han.community.event;
 
-import com.han.community.entity.NotificationType;
-import com.han.community.entity.NotificationTargetType;
+import com.han.community.entity.notification.NotificationType;
+import com.han.community.entity.notification.NotificationTargetType;
 
 public record NotificationEvent(
         Long actorId,

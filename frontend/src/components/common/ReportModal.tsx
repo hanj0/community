@@ -12,8 +12,12 @@ const REASONS: { value: ReportReason; label: string; desc: string }[] = [
   { value: 'SPAM', label: '스팸/광고', desc: '홍보성 도배, 반복 게시물' },
   { value: 'ABUSE', label: '욕설/비방', desc: '모욕, 인신공격, 혐오 표현' },
   { value: 'SEXUAL', label: '음란물/선정성', desc: '노골적이거나 부적절한 성적 내용' },
-  { value: 'ILLEGAL', label: '불법 정보', desc: '불법 거래, 저작권 침해 등' },
-  { value: 'ETC', label: '기타', desc: '위 항목에 해당하지 않는 사유' },
+  { value: 'VIOLENCE', label: '폭력적 콘텐츠', desc: '폭력적이거나 위협적인 내용' },
+  { value: 'DISGUSTING', label: '혐오감을 주는 콘텐츠', desc: '혐오감이나 불쾌감을 주는 내용' },
+  { value: 'PRIVACY', label: '개인정보 노출', desc: '개인정보 노출 등 사생활 침해' },
+  { value: 'ILLEGAL', label: '불법 정보', desc: '불법 거래 등 불법행위' },
+  { value: 'COPYRIGHT', label: '저작권 침해', desc: '저작권을 침해하는 내용' },
+  { value: 'OTHER', label: '기타', desc: '위 항목에 해당하지 않는 사유' },
 ];
 
 const DETAIL_MAX = 300;
@@ -26,7 +30,7 @@ export default function ReportModal({ targetType, targetId, onClose }: ReportMod
   const [done, setDone] = useState(false);
 
   const targetLabel = targetType === 'POST' ? '게시글' : '댓글';
-  const detailRequired = reason === 'ETC';
+  const detailRequired = reason === 'OTHER';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

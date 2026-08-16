@@ -412,7 +412,6 @@ a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}
 .rpt-drawer-commit:hover:not(:disabled){opacity:.9}
 .rpt-drawer-commit:disabled{opacity:.4;cursor:not-allowed}
 .rpt-drawer-result-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%}
-.rpt-drawer-foot-note{font-size:12.5px;color:var(--t3);margin-right:auto}
 .rpt-history{display:flex;flex-direction:column;gap:10px}
 .rpt-history-head{display:flex;align-items:baseline;gap:7px}
 .rpt-history-head h2{font-size:14.5px;font-weight:700;letter-spacing:-.01em;color:var(--t1)}

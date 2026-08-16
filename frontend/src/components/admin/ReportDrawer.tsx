@@ -18,7 +18,6 @@ import {
 interface ReportDrawerProps {
   detail: ReportDetail;
   hasNextPending: boolean;
-  nextPendingCount: number;
   onClose: () => void;
   onResolve: (result: ReportResolveRequest) => Promise<void>;
   onNextPending: () => void;
@@ -70,7 +69,6 @@ function Seg<T extends string>({
 export default function ReportDrawer({
   detail,
   hasNextPending,
-  nextPendingCount,
   onClose,
   onResolve,
   onNextPending,
@@ -367,11 +365,10 @@ export default function ReportDrawer({
           )}
           {showResultView && (
             <div className="rpt-drawer-result-foot">
-              {!hasNextPending && <span className="rpt-drawer-foot-note">대기 중인 신고가 없습니다</span>}
               <button ref={closeBtnRef} className="modal-btn" type="button" onClick={onClose}>닫기</button>
               {hasNextPending && (
                 <button ref={nextBtnRef} className="modal-btn primary" type="button" onClick={onNextPending}>
-                  다음 대기 신고 처리 ({nextPendingCount}건 남음)
+                  다음 대기 신고
                 </button>
               )}
             </div>

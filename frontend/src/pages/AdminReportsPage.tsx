@@ -146,7 +146,6 @@ export default function AdminReportsPage() {
 
   const activeKey = activeReport ? reportKey(activeReport) : null;
   const hasNextPending = status === 'PENDING' && reports.some(r => reportKey(r) !== activeKey);
-  const nextPendingCount = status === 'PENDING' ? reports.filter(r => reportKey(r) !== activeKey).length : 0;
 
   const handleResolve = async (request: ReportResolveRequest) => {
     if (!activeReport) return;
@@ -270,7 +269,6 @@ export default function AdminReportsPage() {
           key={reportKey(activeReport)}
           detail={detail}
           hasNextPending={hasNextPending}
-          nextPendingCount={nextPendingCount}
           onClose={() => setActiveReport(null)}
           onResolve={handleResolve}
           onNextPending={handleNextPending}

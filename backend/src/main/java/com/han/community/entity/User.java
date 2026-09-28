@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -19,19 +20,14 @@ public class User extends BaseSoftDeleteEntity implements UserDetails {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(nullable = false, unique = true)
     private String username;
-
     @Column(nullable = false)
     private String email;
-
     @Column(nullable = false)
     private String password;
-
     // url 형식 지정
     private String profileImageUrl;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -44,6 +40,13 @@ public class User extends BaseSoftDeleteEntity implements UserDetails {
         this.role = role != null ? role : Role.USER;
     }
 
+    public void withdraw() {
+        this.email = this.id + "@delete.invalid";
+        this.username = "탈퇴한 사용자";
+        this.password = UUID.randomUUID().toString();
+        // todo: image삭제 로직
+        softDelete();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

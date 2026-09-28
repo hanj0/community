@@ -3,28 +3,25 @@ package com.han.community.entity;
 import com.han.community.dto.PostDto;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
+@SQLRestriction("deleted_at IS NULL")
 public class Post extends BaseSoftDeleteEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @ManyToOne
     @JoinColumn(name = "channel_id")
     private Channel channel;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
     private String title;
-
     @Column(columnDefinition = "TEXT")
     private String content;
-
     private int viewCount;
     private int likeCount;
     private int dislikeCount;
@@ -37,6 +34,9 @@ public class Post extends BaseSoftDeleteEntity {
         this.content = requestDto.getContent();
     }
 
+    public void delete() {
+        softDelete();
+    }
 
     // builder 패턴
     private Post(Builder builder) {

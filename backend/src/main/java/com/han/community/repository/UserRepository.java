@@ -34,4 +34,14 @@ u.updatedAt = CURRENT_TIMESTAMP
 WHERE u.id = :userId
 """)
     void updatePassword(@Param("userId")Long userId, @Param("hashed")String hashed);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+UPDATE User u
+SET u.username = '탈퇴한 사용자',
+    u.email = '',
+    u.deletedAt = CURRENT_TIMESTAMP
+WHERE u.id = :id
+""")
+    void withdrawById(@Param("id")Long id);
 }

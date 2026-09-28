@@ -186,8 +186,12 @@ public class CommentService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        commentRepository.deleteByParentCommentId(id);
-        commentRepository.deleteById(id);
+        // 얘가 루트 댓글이면 삭제된 댓글이라고 content갱신 (또는 맨션이 있으면)
+        // 하위 댓글이면 그냥 삭제
+        // 하위 댓글이 모두 삭제되면 루트 댓글도 삭제 
+        comment.delete();
+        //commentRepository.deleteByParentCommentId(id);
+        //commentRepository.deleteById(id);
 
         Long postId = comment.getPost().getId();
         postRepository.syncCommentCount(postId);

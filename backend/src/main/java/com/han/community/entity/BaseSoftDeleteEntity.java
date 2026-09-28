@@ -2,6 +2,7 @@ package com.han.community.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
+import org.hibernate.annotations.SoftDelete;
 
 import java.time.LocalDateTime;
 

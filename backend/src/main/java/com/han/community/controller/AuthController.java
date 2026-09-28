@@ -110,4 +110,17 @@ public class AuthController {
                 .status(HttpStatus.OK)
                 .build();
     }
+
+    @PostMapping("/withdraw")
+    public ResponseEntity<Void> withdraw(
+            @AuthenticationPrincipal User user,
+            @RequestBody AuthDto.WithdrawRequest requestDto) {
+
+        authService.withdraw(user.getId(), requestDto);
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
+    }
+
 }

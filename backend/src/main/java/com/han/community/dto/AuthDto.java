@@ -60,4 +60,8 @@ public class AuthDto {
             String currentPassword,
             String newPassword
     ) {}
+
+    public record WithdrawRequest(
+            String password
+    ) {}
 }

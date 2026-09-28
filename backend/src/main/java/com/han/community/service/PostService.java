@@ -111,9 +111,9 @@ public class PostService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        // todo: soft delete로 수정 필요
-        commentRepository.deleteByPostId(postId);
-        postRepository.deleteById(postId);
+        post.delete();
+        //commentRepository.deleteByPostId(postId);
+        //postRepository.deleteById(postId);
     }
 
     @Transactional

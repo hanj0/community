@@ -75,4 +75,15 @@ public class AuthService {
         userRepository.updatePassword(userId, passwordEncoder.encode(requestDto.newPassword()));
     }
 
+    @Transactional
+    public void withdraw(Long userId, AuthDto.WithdrawRequest requestDto) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if(!passwordEncoder.matches(requestDto.password(), user.getPassword()))
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
+
+        user.withdraw();
+    }
 }

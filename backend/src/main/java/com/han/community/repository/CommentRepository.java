@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     @Query("""
@@ -35,8 +37,8 @@ WHERE c.parentComment.id = :parentId
     void deleteByPostId(Long postId);
 
     @Modifying
-    @Query("DELETE FROM Comment c WHERE c.parentComment.id = :parentId")
-    void deleteByParentCommentId(Long parentId);
+    @Query("UPDATE Comment c SET c.deletedAt = :deletedAt WHERE c.parentComment.id = :parentId")
+    void deleteByParentCommentId(@Param("parentId")Long parentId, @Param("deletedAt")LocalDateTime deletedAt);
 
     @Query("""
 SELECT new com.han.community.dto.UserDto$MyCommentResponse(

@@ -8,12 +8,10 @@ import java.time.LocalDateTime;
 
 public class CommentDto {
 
-    @Getter
-    public static class CreateRequest {
-
-        private Long parentId;
-        private String content;
-    }
+    public record CreateRequest(
+        Long parentId,
+        String content
+    ) {}
 
     @Getter
     public static class UpdateRequest {

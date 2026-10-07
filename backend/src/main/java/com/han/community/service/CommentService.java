@@ -109,7 +109,7 @@ public class CommentService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
 
-        Long parentId = requestDto.getParentId();
+        Long parentId = requestDto.parentId();
         Comment parentComment = null;
         if(parentId != null) {
             parentComment = commentRepository.findById(parentId)
@@ -123,7 +123,7 @@ public class CommentService {
                 .user(user)
                 .post(post)
                 .parentComment(parentComment)
-                .content(requestDto.getContent())
+                .content(requestDto.content())
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
@@ -186,12 +186,8 @@ public class CommentService {
             throw new BusinessException(ErrorCode.FORBIDDEN);
         }
 
-        // 얘가 루트 댓글이면 삭제된 댓글이라고 content갱신 (또는 맨션이 있으면)
-        // 하위 댓글이면 그냥 삭제
-        // 하위 댓글이 모두 삭제되면 루트 댓글도 삭제 
         comment.delete();
-        //commentRepository.deleteByParentCommentId(id);
-        //commentRepository.deleteById(id);
+        commentRepository.deleteByParentCommentId(id, comment.getDeletedAt());
 
         Long postId = comment.getPost().getId();
         postRepository.syncCommentCount(postId);

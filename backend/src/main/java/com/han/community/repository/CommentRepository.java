@@ -72,4 +72,14 @@ WHERE c.user.id = :userId
 
     @Query("SELECT c.user.id FROM Comment c WHERE c.id = :id")
     Long findUserIdById(@Param("id")Long id);
+
+    /**
+     * 게시글의 모든 댓글 & 대댓글을 삭제처리한다.
+     *
+     * @Param postId    대상 게시글 ID
+     * @Param deletedAt 삭제시각 (게시글 삭제시각과 맞추기 위해 넘겨받음)
+     */
+    @Modifying
+    @Query("UPDATE Comment c SET c.deletedAt = :deletedAt WHERE c.post.id = :postId")
+    void deleteAllByPost(@Param("postId")Long postId, @Param("deletedAt")LocalDateTime deletedAt);
 }

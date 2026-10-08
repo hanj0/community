@@ -112,8 +112,7 @@ public class PostService {
         }
 
         post.delete();
-        //commentRepository.deleteByPostId(postId);
-        //postRepository.deleteById(postId);
+        commentRepository.deleteAllByPost(postId, post.getDeletedAt());
     }
 
     @Transactional

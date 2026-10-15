@@ -11,13 +11,13 @@ import com.han.community.repository.AdvisoryLockRepository;
 import com.han.community.repository.CommentReactionRepository;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CommentReactionService {
 
     private final CommentReactionRepository commentReactionRepository;

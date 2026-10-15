@@ -5,6 +5,7 @@ import com.han.community.entity.Role;
 import com.han.community.entity.User;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
+import com.han.community.redis.LoginAttemptService;
 import com.han.community.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public User signup(AuthDto.SignupRequest request) {
@@ -43,18 +45,30 @@ public class AuthService {
 
     public Authentication login(AuthDto.LoginRequest request) {
 
+        String key = request.email();
+
+        if(loginAttemptService.isLocked(key)) {
+            throw new BusinessException(ErrorCode.LOGIN_LOCKED);
+        }
+
+        Authentication authentication;
         try {
-            return authenticationManager.authenticate(
+            authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
+                            request.email(),
+                            request.password()
                     )
             );
         } catch (BadCredentialsException e) {
+            loginAttemptService.increment(key);
             throw new BusinessException(ErrorCode.INVALID_LOGIN);
         } catch (AuthenticationException e) {
             throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED);
         }
+
+        loginAttemptService.reset(key);
+
+        return authentication;
     }
 
     // todo: 일정기간 많은 요청 시 요청제한해야함

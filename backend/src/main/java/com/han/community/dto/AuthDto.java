@@ -6,14 +6,11 @@ import lombok.Getter;
 
 public class AuthDto {
 
-    @Getter
-    public static class LoginRequest {
+    public record LoginRequest (
 
-        @NotBlank
-        private String email;
-        @NotBlank
-        private String password;
-    }
+        @NotBlank String email,
+        @NotBlank String password
+    ) {}
 
     @Getter
     public static class SignupRequest {

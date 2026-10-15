@@ -1,9 +1,10 @@
-package com.han.community.service;
+package com.han.community.integration.concurrency;
 
 import com.han.community.common.ConcurrencyTestSupport;
 import com.han.community.dto.CommentReactionDto;
 import com.han.community.entity.*;
 import com.han.community.repository.*;
+import com.han.community.service.CommentReactionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,8 @@ public class CommentReactionConcurrencyTest extends ConcurrencyTestSupport {
     @Autowired PostRepository postRepository;
     @Autowired ChannelRepository channelRepository;
     @Autowired CommentRepository commentRepository;
-    @Autowired CommentReactionService commentReactionService;
+    @Autowired
+    CommentReactionService commentReactionService;
     @Autowired CommentReactionRepository commentReactionRepository;
 
     private User user;

@@ -1,4 +1,4 @@
-package com.han.community.service;
+package com.han.community.integration.concurrency;
 
 import com.han.community.common.ConcurrencyTestSupport;
 import com.han.community.dto.PostReactionDto;
@@ -7,6 +7,7 @@ import com.han.community.repository.ChannelRepository;
 import com.han.community.repository.PostReactionRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
+import com.han.community.service.PostReactionService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,8 @@ public class PostReactionConcurrencyTest extends ConcurrencyTestSupport {
     @Autowired UserRepository userRepository;
     @Autowired PostRepository postRepository;
     @Autowired ChannelRepository channelRepository;
-    @Autowired PostReactionService postReactionService;
+    @Autowired
+    PostReactionService postReactionService;
 
     private User user;
     private Channel channel;

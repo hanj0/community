@@ -1,4 +1,4 @@
-package com.han.community.service;
+package com.han.community.integration.softDelete;
 
 import com.han.community.common.IntegrationTestSupport;
 import com.han.community.dto.CommentDto;
@@ -7,6 +7,7 @@ import com.han.community.repository.ChannelRepository;
 import com.han.community.repository.CommentRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
+import com.han.community.service.CommentService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

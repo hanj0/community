@@ -16,6 +16,7 @@ public enum ErrorCode {
     // 인증
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "이미 사용중인 이메일입니다."),
     INVALID_LOGIN(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."),
+    LOGIN_LOCKED(HttpStatus.TOO_MANY_REQUESTS, "너무 많이 시도하였습니다. 잠시후 다시 시도해주세요."),
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "로그인에 실패하였습니다. 관리자에게 문의하세요."),
 
     // 유저

@@ -7,6 +7,7 @@ import com.han.community.dto.common.SuccessResponse;
 import com.han.community.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -63,7 +64,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<SuccessResponse<AuthDto.Response>> login(
-            @RequestBody AuthDto.LoginRequest request,
+            @Valid @RequestBody AuthDto.LoginRequest request,
             HttpServletRequest httpRequest) {
 
         Authentication auth = authService.login(request);

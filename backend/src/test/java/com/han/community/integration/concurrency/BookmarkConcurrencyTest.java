@@ -1,4 +1,4 @@
-package com.han.community.service;
+package com.han.community.integration.concurrency;
 
 import com.han.community.common.ConcurrencyTestSupport;
 import com.han.community.entity.Channel;
@@ -9,6 +9,7 @@ import com.han.community.repository.BookmarkRepository;
 import com.han.community.repository.ChannelRepository;
 import com.han.community.repository.PostRepository;
 import com.han.community.repository.UserRepository;
+import com.han.community.service.BookmarkService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BookmarkConcurrencyTest extends ConcurrencyTestSupport {
 
-    @Autowired BookmarkService bookmarkService;
+    @Autowired
+    BookmarkService bookmarkService;
     @Autowired BookmarkRepository bookmarkRepository;
     @Autowired UserRepository userRepository;
     @Autowired PostRepository postRepository;

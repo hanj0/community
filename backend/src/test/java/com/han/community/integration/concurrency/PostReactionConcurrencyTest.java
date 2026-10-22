@@ -1,6 +1,7 @@
 package com.han.community.integration.concurrency;
 
-import com.han.community.common.ConcurrencyTestSupport;
+import com.han.community.common.ConcurrentExecutor;
+import com.han.community.common.IntegrationTestSupport;
 import com.han.community.dto.PostReactionDto;
 import com.han.community.entity.*;
 import com.han.community.repository.ChannelRepository;
@@ -19,30 +20,23 @@ import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PostReactionConcurrencyTest extends ConcurrencyTestSupport {
+public class PostReactionConcurrencyTest extends IntegrationTestSupport {
 
     @Autowired PostReactionRepository postReactionRepository;
     @Autowired UserRepository userRepository;
     @Autowired PostRepository postRepository;
     @Autowired ChannelRepository channelRepository;
-    @Autowired
-    PostReactionService postReactionService;
+    @Autowired PostReactionService postReactionService;
 
-    private User user;
     private Channel channel;
+    private User user;
     private Post post;
 
     @BeforeEach
     void setUp() {
-        channel = channelRepository.save(
-                Channel.builder().name("1").build()
-        );
-        user = userRepository.save(
-                User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build()
-        );
-        post = postRepository.save(
-                Post.builder().channel(channel).user(user).title("title").content("content").build()
-        );
+        channel = channelRepository.save(Channel.builder().name("1").build());
+        user = userRepository.save(User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build());
+        post = postRepository.save(Post.builder().channel(channel).user(user).title("title").content("content").build());
     }
 
     @AfterEach
@@ -61,48 +55,35 @@ public class PostReactionConcurrencyTest extends ConcurrencyTestSupport {
         Long userId = user.getId();
         PostReactionDto.Request requestDto = new PostReactionDto.Request(ReactionType.DISLIKE);
 
-        ConcurrentResult result = runConcurrently(
+        ConcurrentExecutor.Result result = ConcurrentExecutor.run(
                 threadCount,
                 () -> postReactionService.reactToPost(postId, userId, requestDto)
         );
 
+        assertThat(postRepository.findById(postId).orElseThrow().getDislikeCount()).isEqualTo(1);
         assertThat(postReactionRepository.count()).isEqualTo(1);
-        assertThat(result.duplicate()).isZero();
-        assertThat(result.otherFail()).isZero();
+        assertThat(result.success()).isEqualTo(threadCount);
+        assertThat(result.failures()).isEmpty();
     }
 
     @Test
     void 같은_리액션_동시삭제() throws InterruptedException {
 
+        int threadCount = 10;
         Long postId = post.getId();
         Long userId = user.getId();
         PostReactionDto.Request request = new PostReactionDto.Request(ReactionType.LIKE);
         postReactionService.reactToPost(postId, userId, request);
-Post init = postRepository.findById(postId).orElseThrow();
-        System.out.println(init.getLikeCount());
+        assertThat(postRepository.findById(postId).orElseThrow().getLikeCount()).isEqualTo(1);
 
-        int threadCount = 10;
-        CountDownLatch start = new CountDownLatch(1);
-        CountDownLatch done = new CountDownLatch(threadCount);
-        try(ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
-            for(int i = 0; i < threadCount; i ++) {
-                executor.submit(() -> {
-                    try {
-                        start.await();
-                        postReactionService.deleteReaction(postId, userId);
-                    } catch(Throwable t) {
-                        t.printStackTrace();
-                    } finally {
-                        done.countDown();
-                    }
-                });
-            }
-            start.countDown();
-            done.await();
-        }
-        Post post = postRepository.findById(postId).orElseThrow();
-System.out.println(post.getLikeCount());
-        assertThat(post.getLikeCount()).isEqualTo(0);
+        ConcurrentExecutor.Result result = ConcurrentExecutor.run(
+                threadCount,
+                () -> postReactionService.deleteReaction(postId, userId)
+        );
+
+        assertThat(postRepository.findById(postId).orElseThrow().getLikeCount()).isEqualTo(0);
+        assertThat(result.success()).isEqualTo(threadCount);
+        assertThat(result.failures()).isEmpty();
         assertThat(postReactionRepository.findByPostIdAndUserId(postId, userId)).isEmpty();
     }
 }

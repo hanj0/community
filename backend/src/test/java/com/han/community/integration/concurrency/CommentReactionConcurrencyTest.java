@@ -1,6 +1,7 @@
 package com.han.community.integration.concurrency;
 
-import com.han.community.common.ConcurrencyTestSupport;
+import com.han.community.common.ConcurrentExecutor;
+import com.han.community.common.IntegrationTestSupport;
 import com.han.community.dto.CommentReactionDto;
 import com.han.community.entity.*;
 import com.han.community.repository.*;
@@ -12,14 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CommentReactionConcurrencyTest extends ConcurrencyTestSupport {
+public class CommentReactionConcurrencyTest extends IntegrationTestSupport {
 
     @Autowired UserRepository userRepository;
     @Autowired PostRepository postRepository;
     @Autowired ChannelRepository channelRepository;
     @Autowired CommentRepository commentRepository;
-    @Autowired
-    CommentReactionService commentReactionService;
+    @Autowired CommentReactionService commentReactionService;
     @Autowired CommentReactionRepository commentReactionRepository;
 
     private User user;
@@ -29,18 +29,10 @@ public class CommentReactionConcurrencyTest extends ConcurrencyTestSupport {
 
     @BeforeEach
     void setUp() {
-        channel = channelRepository.save(
-                Channel.builder().name("1").build()
-        );
-        user = userRepository.save(
-                User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build()
-        );
-        post = postRepository.save(
-                Post.builder().channel(channel).user(user).title("title").content("content").build()
-        );
-        comment = commentRepository.save(
-                Comment.builder().user(user).post(post).content("content").build()
-        );
+        channel = channelRepository.save(Channel.builder().name("1").build());
+        user = userRepository.save(User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build());
+        post = postRepository.save(Post.builder().channel(channel).user(user).title("title").content("content").build());
+        comment = commentRepository.save(Comment.builder().user(user).post(post).content("content").build());
     }
 
     @AfterEach
@@ -52,22 +44,26 @@ public class CommentReactionConcurrencyTest extends ConcurrencyTestSupport {
         channelRepository.deleteAllInBatch();
     }
 
+    /**
+     * advisory락으로 동시요청을 막음
+     */
     @Test
     void 동일한_댓글_리액션_요청() throws InterruptedException {
-
 
         int threadCount = 10;
         CommentReactionDto.Request dto = new CommentReactionDto.Request(ReactionType.LIKE);
         Long commentId = comment.getId();
         Long userId = user.getId();
 
-        ConcurrentResult result = runConcurrently(
+        ConcurrentExecutor.Result result = ConcurrentExecutor.run(
                 threadCount,
                 () -> commentReactionService.reactToComment(commentId, userId, dto)
         );
 
+        assertThat(commentRepository.findById(commentId).orElseThrow().getLikeCount()).isEqualTo(1);
         assertThat(commentReactionRepository.count()).isEqualTo(1);
-        assertThat(result.duplicate()).isZero();
-        assertThat(result.otherFail()).isZero();
+        assertThat(result.success()).isEqualTo(threadCount);
+        assertThat(result.failures()).isEmpty();
     }
+
 }

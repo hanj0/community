@@ -22,8 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PostSoftDeleteTest extends IntegrationTestSupport {
 
     @Autowired PostRepository postRepository;
-    @Autowired
-    PostService postService;
+    @Autowired PostService postService;
     @Autowired ChannelRepository channelRepository;
     @Autowired UserRepository userRepository;
     @Autowired CommentRepository commentRepository;
@@ -31,16 +30,12 @@ public class PostSoftDeleteTest extends IntegrationTestSupport {
 
     private Channel channel;
     private User user;
-    private Pageable pageable = PageRequest.of(0, 10);
+    private final Pageable pageable = PageRequest.of(0, 10);
 
     @BeforeEach
     void setUp() {
-        channel = channelRepository.save(
-                Channel.builder().name("1").build()
-        );
-        user = userRepository.save(
-                User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build()
-        );
+        channel = channelRepository.save(Channel.builder().name("1").build());
+        user = userRepository.save(User.builder().username("username").email("email@email.com").password("password").role(Role.USER).build());
     }
 
     @AfterEach

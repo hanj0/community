@@ -7,7 +7,7 @@ import com.han.community.entity.*;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
 import com.han.community.repository.*;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
@@ -29,6 +29,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final PostReactionRepository postReactionRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ViewCountIncrementer viewCountIncrementer;
 
     private static final int HOT_THRESHOLD = 20;
     private static final int PAGE_SIZE_LIMIT = 100;
@@ -67,7 +68,7 @@ public class PostService {
             isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
         }
         if(!alreadyViewed) {
-            postRepository.incrementViewCount(postId);
+            viewCountIncrementer.increment(postId);
         }
 
         return PostDto.DetailResponse.builder()

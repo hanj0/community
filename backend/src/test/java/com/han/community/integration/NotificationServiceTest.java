@@ -1,4 +1,4 @@
-package com.han.community.service;
+package com.han.community.integration;
 
 import com.han.community.common.IntegrationTestSupport;
 import com.han.community.dto.NotificationDto;
@@ -9,6 +9,7 @@ import com.han.community.entity.notification.NotificationTargetType;
 import com.han.community.event.NotificationEvent;
 import com.han.community.repository.NotificationActorRepository;
 import com.han.community.repository.NotificationRepository;
+import com.han.community.service.NotificationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class NotificationServiceTest extends IntegrationTestSupport {
 
-    @Autowired NotificationService notificationService;
+    @Autowired
+    NotificationService notificationService;
     @Autowired NotificationRepository notificationRepository;
     @Autowired NotificationActorRepository actorRepository;
     @Autowired JdbcTemplate jdbcTemplate;

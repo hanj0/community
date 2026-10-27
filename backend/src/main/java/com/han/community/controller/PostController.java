@@ -35,7 +35,6 @@ public class PostController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
 
-/// redis로 배치작업, 중복조회방지 리팩토링
         String cookieName = "vp_" + id;
         boolean alreadyViewed = Arrays.stream(
                         httpRequest.getCookies() != null ? httpRequest.getCookies() : new Cookie[0])
@@ -48,6 +47,7 @@ public class PostController {
             Cookie cookie = new Cookie(cookieName, "true");
             cookie.setMaxAge(24*60*60);
             cookie.setPath("/");
+            cookie.setHttpOnly(true);
             httpResponse.addCookie(cookie);
         }
 

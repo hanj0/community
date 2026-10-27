@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -66,6 +67,11 @@ ORDER BY p.likeCount DESC
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     void incrementViewCount(@Param("id")Long id);
 
+    @Transactional
+    @Modifying
+    @Query("UPDATE Post p SET p.viewCount = p.viewCount + :viewCount WHERE p.id = :id")
+    void flushViewCounts(@Param("viewCount")long viewCount, @Param("id")Long id);
+
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :id")
     void incrementCommentCount(@Param("id") Long id);
@@ -77,7 +83,6 @@ ORDER BY p.likeCount DESC
     Page<Post> findByUserId(Long userId, Pageable pageable);
 
 
-// 좋아요/싫어요 기능
     @Modifying
     @Query("UPDATE Post p SET p.likeCount = p.likeCount - 1 WHERE p.id = :id")
     void decrementLikeCount(@Param("id") Long id);

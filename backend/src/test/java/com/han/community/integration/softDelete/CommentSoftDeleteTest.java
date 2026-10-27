@@ -22,18 +22,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CommentSoftDeleteTest extends IntegrationTestSupport {
 
-    @Autowired
-    CommentRepository commentRepository;
-    @Autowired
-    CommentService commentService;
-    @Autowired
-    PostRepository postRepository;
-    @Autowired
-    ChannelRepository channelRepository;
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    JdbcTemplate jdbcTemplate;
+    @Autowired CommentRepository commentRepository;
+    @Autowired CommentService commentService;
+    @Autowired PostRepository postRepository;
+    @Autowired ChannelRepository channelRepository;
+    @Autowired UserRepository userRepository;
+    @Autowired JdbcTemplate jdbcTemplate;
 
     private Channel channel;
     private User user;
@@ -42,18 +36,10 @@ public class CommentSoftDeleteTest extends IntegrationTestSupport {
 
     @BeforeEach
     void setUp() {
-        channel = channelRepository.save(
-                Channel.builder().name("1").build()
-        );
-        postUser = userRepository.save(
-                User.builder().username("username1").email("email@email.com").password("password").role(Role.USER).build()
-        );
-        user = userRepository.save(
-                User.builder().username("username2").email("email2@email.com").password("password").role(Role.USER).build()
-        );
-        post = postRepository.save(
-                Post.builder().channel(channel).user(postUser).title("test_title").content("test_content").build()
-        );
+        channel = channelRepository.save(Channel.builder().name("1").build());
+        postUser = userRepository.save(User.builder().username("username1").email("email@email.com").password("password").role(Role.USER).build());
+        user = userRepository.save(User.builder().username("username2").email("email2@email.com").password("password").role(Role.USER).build());
+        post = postRepository.save(Post.builder().channel(channel).user(postUser).title("test_title").content("test_content").build());
     }
 
     @AfterEach

@@ -66,10 +66,10 @@ abstract class AbstractViewCountIncrementTest extends IntegrationTestSupport {
     }
 
     @Test
-    void 동시_100쓰레드x100번_조회시_조회수_10000_증가() throws InterruptedException {
+    void 동시_N쓰레드xM번_조회시_조회수_NxM_증가() throws InterruptedException {
 
-        int count = 100;
-        int threadCount = 100;
+        int count = 1;
+        int threadCount = 5000;
 
         ConcurrentExecutor.Result result = ConcurrentExecutor.run(
                 threadCount,

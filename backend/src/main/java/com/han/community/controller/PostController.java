@@ -41,7 +41,7 @@ public class PostController {
                 .anyMatch(c -> c.getName().equals(cookieName));
 
         Long userId = user == null ? null : user.getId();
-        PostDto.DetailResponse response = postService.getDetail(id, userId, alreadyViewed);
+        PostDto.DetailResponse response = postService.view(id, userId, alreadyViewed);
 
         if(!alreadyViewed) {
             Cookie cookie = new Cookie(cookieName, "true");

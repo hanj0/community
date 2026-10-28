@@ -53,8 +53,19 @@ public class PostService {
         return PostDto.SummaryResponse.from(savePost);
     }
 
+    public PostDto.DetailResponse view(Long postId, @Nullable Long userId, boolean alreadyViewed) {
+
+        PostDto.DetailResponse response = getDetail(postId, userId);
+
+        if(!alreadyViewed) {
+            viewCountIncrementer.increment(postId);
+        }
+
+        return response;
+    }
+
     @Transactional
-    public PostDto.DetailResponse getDetail(Long postId, @Nullable Long userId, boolean alreadyViewed) {
+    private PostDto.DetailResponse getDetail(Long postId, @Nullable Long userId) {
 
         Post post = postRepository.findByIdWithDetails(postId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
@@ -66,9 +77,6 @@ public class PostService {
             postReaction = postReactionRepository.findByPostIdAndUserId(postId, userId)
                     .orElse(null);
             isBookmarked = bookmarkRepository.existsByPostIdAndUserId(postId, userId);
-        }
-        if(!alreadyViewed) {
-            viewCountIncrementer.increment(postId);
         }
 
         return PostDto.DetailResponse.builder()
@@ -157,4 +165,5 @@ public class PostService {
 
         return page.map(post -> PostDto.SummaryResponse.from(post));
     }
+
 }

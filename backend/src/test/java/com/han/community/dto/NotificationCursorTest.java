@@ -1,6 +1,6 @@
 package com.han.community.dto;
 
-import com.han.community.dto.common.NotificationCursor;
+import com.han.community.global.dto.NotificationCursor;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

@@ -1,0 +1,213 @@
+package com.han.community.comment.service;
+
+import com.han.community.comment.dto.CommentResponse;
+import com.han.community.comment.dto.CommentUpdateRequest;
+import com.han.community.comment.dto.CommentCreateRequest;
+import com.han.community.comment.entity.Comment;
+import com.han.community.post.entity.Post;
+import com.han.community.post.entity.ReactionType;
+import com.han.community.user.dto.UserDto;
+import com.han.community.notification.entity.NotificationTargetType;
+import com.han.community.notification.entity.NotificationType;
+import com.han.community.notification.event.NotificationEvent;
+import com.han.community.global.exception.BusinessException;
+import com.han.community.global.exception.ErrorCode;
+import com.han.community.comment.repository.CommentReactionRepository;
+import com.han.community.comment.repository.CommentRepository;
+import com.han.community.post.repository.PostRepository;
+import com.han.community.user.repository.UserRepository;
+import com.han.community.user.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CommentService {
+
+    private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final PostRepository postRepository;
+    private final CommentReactionRepository commentReactionRepository;
+    private final ApplicationEventPublisher publisher;
+
+    @Transactional
+    public Page<CommentResponse> getComments(Long postId, @Nullable Long userId, Pageable pageable) {
+
+        Page<Comment> comments = commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable);
+
+        List<Long> commentIds = comments.getContent().stream()
+                .map(comment -> comment.getId())
+                .toList();
+
+        Map<Long, ReactionType> userReactions = (userId == null || commentIds.isEmpty())
+                ? Collections.emptyMap()
+                : commentReactionRepository.findByUserIdAndCommentIdIn(userId, commentIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            cr -> cr.getComment().getId(),
+                            cr -> cr.getType()
+                    ));
+
+        return comments.map(
+                c -> CommentResponse.builder()
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
+                        .likeCount(c.getLikeCount())
+                        .dislikeCount(c.getDislikeCount())
+                        .replyCount(c.getReplyCount())
+                        .reactionType(userReactions.get(c.getId()))
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build()
+        );
+    }
+
+    @Transactional
+    public Page<CommentResponse> getReplies(Long commentId, @Nullable Long userId, Pageable pageable) {
+
+        Page<Comment> replies = commentRepository.findByParentCommentId(commentId, pageable);
+
+        List<Long> commentIds = replies.getContent().stream()
+                .map(comment -> comment.getId())
+                .toList();
+
+        Map<Long, ReactionType> userReactions = (userId == null || commentIds.isEmpty())
+                ? Collections.emptyMap()
+                : commentReactionRepository.findByUserIdAndCommentIdIn(userId, commentIds)
+                    .stream()
+                    .collect(Collectors.toMap(
+                            cr -> cr.getComment().getId(),
+                            cr -> cr.getType()
+                    ));
+
+        return replies.map(
+                c -> CommentResponse.builder()
+                        .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
+                        .id(c.getId())
+                        .content(c.getContent())
+                        .parentId(c.getParentComment().getId())
+                        .likeCount(c.getLikeCount())
+                        .dislikeCount(c.getDislikeCount())
+                        .replyCount(c.getReplyCount())
+                        .reactionType(userReactions.get(c.getId()))
+                        .createdAt(c.getCreatedAt())
+                        .updatedAt(c.getUpdatedAt())
+                        .build()
+        );
+    }
+
+    @Transactional
+    public CommentResponse create(CommentCreateRequest requestDto, Long postId, Long userId) {
+
+        User user = userRepository.getReferenceById(userId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.POST_NOT_FOUND));
+
+        Long parentId = requestDto.parentId();
+        Comment parentComment = null;
+        if(parentId != null) {
+            parentComment = commentRepository.findById(parentId)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+            commentRepository.incrementReplyCount(parentId);
+        }
+
+        postRepository.incrementCommentCount(postId);
+
+        Comment comment = Comment.builder()
+                .user(user)
+                .post(post)
+                .parentComment(parentComment)
+                .content(requestDto.content())
+                .build();
+
+        Comment savedComment = commentRepository.save(comment);
+
+        // todo: 한번에 가져오는게 성능이 좋으면 post조회할때 join해서 가져오게
+        boolean shouldNotify = parentId == null
+                ? !userId.equals(post.getUser().getId())
+                : !userId.equals(parentComment.getUser().getId());
+
+        if(shouldNotify) {
+            publisher.publishEvent(new NotificationEvent(
+                    userId,
+                    parentId == null ? NotificationTargetType.POST : NotificationTargetType.COMMENT,
+                    parentId == null ? postId : parentComment.getId(),
+                    postId,
+                    parentId == null ? post.getUser().getId() : parentComment.getUser().getId(),
+                    NotificationType.COMMENT,
+                    savedComment.getContent()
+            ));
+        }
+
+        return CommentResponse.builder()
+                .id(savedComment.getId())
+                .content(savedComment.getContent())
+                .parentId(parentId)
+                .authorInfo(UserDto.AuthorResponse.from(user))
+                .reactionType(null)
+                .replyCount(savedComment.getReplyCount())
+                .likeCount(savedComment.getLikeCount())
+                .dislikeCount(savedComment.getDislikeCount())
+                .createdAt(savedComment.getCreatedAt())
+                .updatedAt(savedComment.getUpdatedAt())
+                .build();
+    }
+
+    @Transactional
+    public CommentResponse update(Long commentId, CommentUpdateRequest requestDto, Long userId) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if(!userId.equals(comment.getUser().getId()))
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+
+        comment.update(requestDto.getContent());
+
+        return CommentResponse.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .build();
+    }
+
+    @Transactional
+    public void delete(Long id, Long userId) {
+
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if(!comment.getUser().getId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+
+        comment.delete();
+        commentRepository.deleteByParentCommentId(id, comment.getDeletedAt());
+
+        Long postId = comment.getPost().getId();
+        postRepository.syncCommentCount(postId);
+    }
+
+    private Comment getParentComment(Long postId, Long parentCommentId) {
+
+        if(parentCommentId == null) return null;
+
+        Comment parentComment = commentRepository.findById(parentCommentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if (!postId.equals(parentComment.getPost().getId()))
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+
+        return parentComment;
+    }
+}

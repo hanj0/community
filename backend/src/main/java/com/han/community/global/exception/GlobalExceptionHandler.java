@@ -1,6 +1,6 @@
 package com.han.community.global.exception;
 
-import com.han.community.dto.common.ErrorResponse;
+import com.han.community.global.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

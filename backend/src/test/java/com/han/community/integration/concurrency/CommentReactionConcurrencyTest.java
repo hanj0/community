@@ -1,11 +1,20 @@
 package com.han.community.integration.concurrency;
 
+import com.han.community.channel.entity.Channel;
+import com.han.community.channel.repository.ChannelRepository;
+import com.han.community.comment.dto.CommentReactionRequest;
+import com.han.community.comment.entity.Comment;
+import com.han.community.comment.repository.CommentReactionRepository;
+import com.han.community.comment.repository.CommentRepository;
 import com.han.community.common.ConcurrentExecutor;
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.dto.CommentReactionDto;
-import com.han.community.entity.*;
-import com.han.community.repository.*;
-import com.han.community.service.CommentReactionService;
+import com.han.community.post.entity.Post;
+import com.han.community.post.entity.ReactionType;
+import com.han.community.post.repository.PostRepository;
+import com.han.community.comment.service.CommentReactionService;
+import com.han.community.user.entity.Role;
+import com.han.community.user.entity.User;
+import com.han.community.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,12 +24,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CommentReactionConcurrencyTest extends IntegrationTestSupport {
 
-    @Autowired UserRepository userRepository;
-    @Autowired PostRepository postRepository;
-    @Autowired ChannelRepository channelRepository;
-    @Autowired CommentRepository commentRepository;
+    @Autowired
+    UserRepository userRepository;
+    @Autowired
+    PostRepository postRepository;
+    @Autowired
+    ChannelRepository channelRepository;
+    @Autowired
+    CommentRepository commentRepository;
     @Autowired CommentReactionService commentReactionService;
-    @Autowired CommentReactionRepository commentReactionRepository;
+    @Autowired
+    CommentReactionRepository commentReactionRepository;
 
     private User user;
     private Channel channel;
@@ -51,7 +65,7 @@ public class CommentReactionConcurrencyTest extends IntegrationTestSupport {
     void 동일한_댓글_리액션_요청() throws InterruptedException {
 
         int threadCount = 10;
-        CommentReactionDto.Request dto = new CommentReactionDto.Request(ReactionType.LIKE);
+        CommentReactionRequest dto = new CommentReactionRequest(ReactionType.LIKE);
         Long commentId = comment.getId();
         Long userId = user.getId();
 

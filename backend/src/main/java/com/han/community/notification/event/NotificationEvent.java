@@ -1,0 +1,30 @@
+package com.han.community.notification.event;
+
+import com.han.community.notification.entity.NotificationType;
+import com.han.community.notification.entity.NotificationTargetType;
+
+public record NotificationEvent(
+        Long actorId,
+        NotificationTargetType targetType,
+        Long targetId,
+        Long rootPostId,
+        Long recipientId,
+        NotificationType type,
+        String contentPreview
+){
+
+    private static final int PREVIEW_LENGTH = 30;
+
+    public NotificationEvent {
+        contentPreview = truncate(contentPreview);
+    }
+
+    // todo: 이모지가 경계에 포함된 경우를 고려해서 처리해야함
+    private String truncate(String content) {
+
+        if(content == null) return null;
+        return content.length() > PREVIEW_LENGTH
+                ? content.substring(0, PREVIEW_LENGTH)
+                : content;
+    }
+}

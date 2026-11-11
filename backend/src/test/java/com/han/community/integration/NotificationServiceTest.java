@@ -2,7 +2,7 @@ package com.han.community.integration;
 
 import com.han.community.common.IntegrationTestSupport;
 import com.han.community.notification.dto.NotificationDto;
-import com.han.community.global.debug.CursorResponse;
+import com.han.community.global.dto.CursorResponse;
 import com.han.community.notification.entity.Notification;
 import com.han.community.notification.entity.NotificationType;
 import com.han.community.notification.entity.NotificationTargetType;

@@ -1,9 +1,9 @@
 package com.han.community.report.dto;
 
-import com.han.community.sanction.dto.UserSanctionInfo;
 import com.han.community.report.entity.ReportReason;
 import com.han.community.report.entity.ReportStatus;
 import com.han.community.report.entity.ReportTargetType;
+import com.han.community.sanction.dto.UserSanctionInfo;
 
 import java.time.LocalDateTime;
 import java.util.List;

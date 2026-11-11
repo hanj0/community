@@ -2,7 +2,7 @@ package com.han.community.notification.controller;
 
 import com.han.community.notification.dto.NotificationDto;
 import com.han.community.user.entity.User;
-import com.han.community.global.debug.CursorResponse;
+import com.han.community.global.dto.CursorResponse;
 import com.han.community.global.dto.SuccessResponse;
 import com.han.community.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;

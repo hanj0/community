@@ -1,9 +1,9 @@
 package com.han.community.post.dto;
 
-import com.han.community.channel.dto.ChannelDto;
-import com.han.community.user.dto.UserDto;
+import com.han.community.channel.dto.ChannelResponse;
 import com.han.community.post.entity.Post;
 import com.han.community.post.entity.ReactionType;
+import com.han.community.user.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,7 +67,7 @@ public class PostDto {
         private String content;
 
         private UserDto.AuthorResponse authorInfo;
-        private ChannelDto.Response channelInfo;
+        private ChannelResponse channelInfo;
 
         private int viewCount;
         private int likeCount;

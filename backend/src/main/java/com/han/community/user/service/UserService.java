@@ -1,9 +1,9 @@
 package com.han.community.user.service;
 
-import com.han.community.post.dto.PostDto;
-import com.han.community.user.dto.UserDto;
 import com.han.community.comment.repository.CommentRepository;
+import com.han.community.post.dto.PostDto;
 import com.han.community.post.repository.PostRepository;
+import com.han.community.user.dto.UserDto;
 import com.han.community.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

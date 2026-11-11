@@ -1,10 +1,10 @@
 package com.han.community.user.controller;
 
+import com.han.community.global.dto.PageResponse;
+import com.han.community.global.dto.SuccessResponse;
 import com.han.community.post.dto.PostDto;
 import com.han.community.user.dto.UserDto;
 import com.han.community.user.entity.User;
-import com.han.community.global.dto.PageResponse;
-import com.han.community.global.dto.SuccessResponse;
 import com.han.community.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/users")

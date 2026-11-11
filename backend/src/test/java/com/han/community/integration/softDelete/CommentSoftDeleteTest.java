@@ -1,9 +1,9 @@
 package com.han.community.integration.softDelete;
 
 import com.han.community.channel.entity.Channel;
+import com.han.community.comment.dto.CommentCreateRequest;
 import com.han.community.comment.entity.Comment;
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.comment.dto.CommentDto;
 import com.han.community.post.entity.Post;
 import com.han.community.channel.repository.ChannelRepository;
 import com.han.community.comment.repository.CommentRepository;
@@ -117,11 +117,11 @@ public class CommentSoftDeleteTest extends IntegrationTestSupport {
         );
 
         Long parentId = commentService.create(
-                new CommentDto.CreateRequest(null, "test_parent"), post.getId(), user.getId()
+                new CommentCreateRequest(null, "test_parent"), post.getId(), user.getId()
         ).getId();
 
         Long replyId = commentService.create(
-                new CommentDto.CreateRequest(parentId, "test_reply"), post.getId(), replyUser.getId()
+                new CommentCreateRequest(parentId, "test_reply"), post.getId(), replyUser.getId()
         ).getId();
 
         // 생성 확인

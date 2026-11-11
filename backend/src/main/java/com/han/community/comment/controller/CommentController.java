@@ -1,6 +1,8 @@
 package com.han.community.comment.controller;
 
-import com.han.community.comment.dto.CommentDto;
+import com.han.community.comment.dto.CommentResponse;
+import com.han.community.comment.dto.CommentUpdateRequest;
+import com.han.community.comment.dto.CommentCreateRequest;
 import com.han.community.user.entity.User;
 import com.han.community.global.dto.PageResponse;
 import com.han.community.global.dto.SuccessResponse;
@@ -24,52 +26,52 @@ public class CommentController {
     }
 
     @GetMapping("/posts/{postId}/comments")
-    public ResponseEntity<PageResponse<CommentDto.Response>> getComments(
+    public ResponseEntity<PageResponse<CommentResponse>> getComments(
             @PathVariable Long postId,
             @PageableDefault(sort = "createdAt") Pageable pageable,
             @AuthenticationPrincipal User user
     ) {
 
         Long userId = user == null ? null : user.getId();
-        Page<CommentDto.Response> response = commentService.getComments(postId, userId, pageable);
+        Page<CommentResponse> response = commentService.getComments(postId, userId, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));
     }
 
     @GetMapping("/comments/{commentId}/replies")
-    public ResponseEntity<PageResponse<CommentDto.Response>> getReplies(
+    public ResponseEntity<PageResponse<CommentResponse>> getReplies(
             @PathVariable Long commentId,
             @PageableDefault(sort = "createdAt") Pageable pageable,
             @AuthenticationPrincipal User user
     ) {
 
         Long userId = user == null ? null : user.getId();
-        Page<CommentDto.Response> response = commentService.getReplies(commentId, userId, pageable);
+        Page<CommentResponse> response = commentService.getReplies(commentId, userId, pageable);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(PageResponse.of(response));
     }
 
     @PostMapping("/posts/{postId}/comments")
-    public ResponseEntity<SuccessResponse<CommentDto.Response>> create(
-            @RequestBody CommentDto.CreateRequest requestDto,
+    public ResponseEntity<SuccessResponse<CommentResponse>> create(
+            @RequestBody CommentCreateRequest requestDto,
             @PathVariable Long postId,
             @AuthenticationPrincipal User user) {
 
-        CommentDto.Response response = commentService.create(requestDto, postId, user.getId());
+        CommentResponse response = commentService.create(requestDto, postId, user.getId());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.of(response));
     }
 
     @PatchMapping("/comments/{id}")
-    public ResponseEntity<SuccessResponse<CommentDto.Response>> update(
+    public ResponseEntity<SuccessResponse<CommentResponse>> update(
             @PathVariable Long id,
-            @RequestBody CommentDto.UpdateRequest requestDto,
+            @RequestBody CommentUpdateRequest requestDto,
             @AuthenticationPrincipal User user) {
 
-        CommentDto.Response response = commentService.update(id, requestDto, user.getId());
+        CommentResponse response = commentService.update(id, requestDto, user.getId());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(SuccessResponse.of(response));

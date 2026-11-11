@@ -1,6 +1,6 @@
 package com.han.community.comment.controller;
 
-import com.han.community.comment.dto.CommentReactionDto;
+import com.han.community.comment.dto.CommentReactionRequest;
 import com.han.community.user.entity.User;
 import com.han.community.comment.service.CommentReactionService;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class CommentReactionController {
     @PutMapping("/{commentId}/reaction")
     public ResponseEntity<Void> putReaction(
             @PathVariable Long commentId,
-            @RequestBody CommentReactionDto.Request requestDto,
+            @RequestBody CommentReactionRequest requestDto,
             @AuthenticationPrincipal User user) {
 
         commentReactionService.reactToComment(commentId, user.getId(), requestDto);

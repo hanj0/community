@@ -1,10 +1,12 @@
 package com.han.community.post.service;
 
 import com.han.community.bookmark.repository.BookmarkRepository;
-import com.han.community.channel.dto.ChannelDto;
+import com.han.community.channel.dto.ChannelResponse;
 import com.han.community.channel.entity.Channel;
 import com.han.community.channel.repository.ChannelRepository;
 import com.han.community.comment.repository.CommentRepository;
+import com.han.community.global.exception.BusinessException;
+import com.han.community.global.exception.ErrorCode;
 import com.han.community.post.dto.PostDto;
 import com.han.community.post.entity.Post;
 import com.han.community.post.entity.PostReaction;
@@ -12,8 +14,6 @@ import com.han.community.post.repository.PostReactionRepository;
 import com.han.community.post.repository.PostRepository;
 import com.han.community.post.viewcount.ViewCountIncrementer;
 import com.han.community.user.dto.UserDto;
-import com.han.community.global.exception.BusinessException;
-import com.han.community.global.exception.ErrorCode;
 import com.han.community.user.entity.User;
 import com.han.community.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -93,7 +93,7 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .authorInfo(UserDto.AuthorResponse.from(post.getUser()))
-                .channelInfo(ChannelDto.Response.from(post.getChannel()))
+                .channelInfo(ChannelResponse.from(post.getChannel()))
                 .viewCount(post.getViewCount())
                 .likeCount(post.getLikeCount())
                 .dislikeCount(post.getDislikeCount())

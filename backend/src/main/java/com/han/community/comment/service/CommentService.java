@@ -1,6 +1,8 @@
 package com.han.community.comment.service;
 
-import com.han.community.comment.dto.CommentDto;
+import com.han.community.comment.dto.CommentResponse;
+import com.han.community.comment.dto.CommentUpdateRequest;
+import com.han.community.comment.dto.CommentCreateRequest;
 import com.han.community.comment.entity.Comment;
 import com.han.community.post.entity.Post;
 import com.han.community.post.entity.ReactionType;
@@ -39,7 +41,7 @@ public class CommentService {
     private final ApplicationEventPublisher publisher;
 
     @Transactional
-    public Page<CommentDto.Response> getComments(Long postId, @Nullable Long userId, Pageable pageable) {
+    public Page<CommentResponse> getComments(Long postId, @Nullable Long userId, Pageable pageable) {
 
         Page<Comment> comments = commentRepository.findByPostIdAndParentCommentIsNull(postId, pageable);
 
@@ -57,7 +59,7 @@ public class CommentService {
                     ));
 
         return comments.map(
-                c -> CommentDto.Response.builder()
+                c -> CommentResponse.builder()
                         .id(c.getId())
                         .content(c.getContent())
                         .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
@@ -72,7 +74,7 @@ public class CommentService {
     }
 
     @Transactional
-    public Page<CommentDto.Response> getReplies(Long commentId, @Nullable Long userId, Pageable pageable) {
+    public Page<CommentResponse> getReplies(Long commentId, @Nullable Long userId, Pageable pageable) {
 
         Page<Comment> replies = commentRepository.findByParentCommentId(commentId, pageable);
 
@@ -90,7 +92,7 @@ public class CommentService {
                     ));
 
         return replies.map(
-                c -> CommentDto.Response.builder()
+                c -> CommentResponse.builder()
                         .authorInfo(UserDto.AuthorResponse.from(c.getUser()))
                         .id(c.getId())
                         .content(c.getContent())
@@ -106,7 +108,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto.Response create(CommentDto.CreateRequest requestDto, Long postId, Long userId) {
+    public CommentResponse create(CommentCreateRequest requestDto, Long postId, Long userId) {
 
         User user = userRepository.getReferenceById(userId);
         Post post = postRepository.findById(postId)
@@ -148,7 +150,7 @@ public class CommentService {
             ));
         }
 
-        return CommentDto.Response.builder()
+        return CommentResponse.builder()
                 .id(savedComment.getId())
                 .content(savedComment.getContent())
                 .parentId(parentId)
@@ -163,7 +165,7 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentDto.Response update(Long commentId, CommentDto.UpdateRequest requestDto, Long userId) {
+    public CommentResponse update(Long commentId, CommentUpdateRequest requestDto, Long userId) {
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMENT_NOT_FOUND));
@@ -173,7 +175,7 @@ public class CommentService {
 
         comment.update(requestDto.getContent());
 
-        return CommentDto.Response.builder()
+        return CommentResponse.builder()
                 .id(comment.getId())
                 .content(comment.getContent())
                 .build();

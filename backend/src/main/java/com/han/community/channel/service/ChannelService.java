@@ -1,6 +1,6 @@
 package com.han.community.channel.service;
 
-import com.han.community.channel.dto.ChannelDto;
+import com.han.community.channel.dto.ChannelResponse;
 import com.han.community.channel.repository.ChannelRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +15,10 @@ public class ChannelService {
         this.channelRepository = channelRepository;
     }
 
-    public List<ChannelDto.Response> getChannels() {
+    public List<ChannelResponse> getChannels() {
 
         return channelRepository.findAll().stream()
-                .map(ChannelDto.Response :: from)
+                .map(ChannelResponse:: from)
                 .toList();
     }
 }

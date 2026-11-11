@@ -1,9 +1,9 @@
 package com.han.community.auth.controller;
 
-import com.han.community.auth.dto.AuthDto;
-import com.han.community.user.entity.User;
-import com.han.community.global.dto.SuccessResponse;
+import com.han.community.auth.dto.*;
 import com.han.community.auth.service.AuthService;
+import com.han.community.global.dto.SuccessResponse;
+import com.han.community.user.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -30,8 +30,8 @@ public class AuthController {
 
 
     @PostMapping("/signup")
-    public ResponseEntity<SuccessResponse<AuthDto.Response>> signup(
-            @RequestBody AuthDto.SignupRequest request,
+    public ResponseEntity<SuccessResponse<AuthResponse>> signup(
+            @RequestBody SignupRequest request,
             HttpServletRequest httpRequest) {
 
         User user = authService.signup(request);
@@ -55,15 +55,15 @@ public class AuthController {
                 SecurityContextHolder.getContext()
         );
 
-        AuthDto.Response response = AuthDto.Response.from(user);
+        AuthResponse response = AuthResponse.from(user);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(SuccessResponse.of(response));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<SuccessResponse<AuthDto.Response>> login(
-            @Valid @RequestBody AuthDto.LoginRequest request,
+    public ResponseEntity<SuccessResponse<AuthResponse>> login(
+            @Valid @RequestBody LoginRequest request,
             HttpServletRequest httpRequest) {
 
         Authentication auth = authService.login(request);
@@ -86,23 +86,23 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(SuccessResponse.of(AuthDto.Response.from(user)));
+                .body(SuccessResponse.of(AuthResponse.from(user)));
 
     }
 
     @GetMapping("/me")
-    public ResponseEntity<SuccessResponse<AuthDto.StatusResponse>> me(
+    public ResponseEntity<SuccessResponse<AuthStatusResponse>> me(
             @AuthenticationPrincipal User user) {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(SuccessResponse.of(AuthDto.StatusResponse.from(user)));
+                .body(SuccessResponse.of(AuthStatusResponse.from(user)));
     }
 
     @PatchMapping("/password")
     public ResponseEntity<Void> patchPassword(
             @AuthenticationPrincipal User user,
-            @RequestBody AuthDto.ChangePasswordRequest requestDto) {
+            @RequestBody ChangePasswordRequest requestDto) {
 
         authService.changePassword(user.getId(), requestDto);
 
@@ -114,7 +114,7 @@ public class AuthController {
     @PostMapping("/withdraw")
     public ResponseEntity<Void> withdraw(
             @AuthenticationPrincipal User user,
-            @RequestBody AuthDto.WithdrawRequest requestDto) {
+            @RequestBody WithdrawRequest requestDto) {
 
         authService.withdraw(user.getId(), requestDto);
 

@@ -1,11 +1,11 @@
 package com.han.community.auth.service;
 
-import com.han.community.auth.dto.AuthDto;
-import com.han.community.user.entity.Role;
-import com.han.community.user.entity.User;
+import com.han.community.auth.dto.*;
+import com.han.community.auth.redis.LoginAttemptService;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
-import com.han.community.auth.redis.LoginAttemptService;
+import com.han.community.user.entity.Role;
+import com.han.community.user.entity.User;
 import com.han.community.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,23 +27,23 @@ public class AuthService {
     private final LoginAttemptService loginAttemptService;
 
     @Transactional
-    public User signup(AuthDto.SignupRequest request) {
+    public User signup(SignupRequest request) {
 
-        if(userRepository.existsByUsername(request.getUsername())) {
+        if(userRepository.existsByUsername(request.username())) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail())
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password()))
+                .email(request.email())
                 .role(Role.USER)
                 .build();
 
         return userRepository.save(user);
     }
 
-    public Authentication login(AuthDto.LoginRequest request) {
+    public Authentication login(LoginRequest request) {
 
         String key = request.email();
 
@@ -75,7 +75,7 @@ public class AuthService {
     //  다른 세션/리프레시 토큰 무효화
     //  변경 완료 이메일 알림
     @Transactional
-    public void changePassword(Long userId, AuthDto.ChangePasswordRequest requestDto) {
+    public void changePassword(Long userId, ChangePasswordRequest requestDto) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -90,7 +90,7 @@ public class AuthService {
     }
 
     @Transactional
-    public void withdraw(Long userId, AuthDto.WithdrawRequest requestDto) {
+    public void withdraw(Long userId, WithdrawRequest requestDto) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));

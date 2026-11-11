@@ -6,7 +6,7 @@ import com.han.community.notification.entity.Notification;
 import com.han.community.notification.entity.NotificationType;
 import com.han.community.notification.entity.NotificationTargetType;
 import com.han.community.notification.event.NotificationEvent;
-import com.han.community.global.debug.CursorResponse;
+import com.han.community.global.dto.CursorResponse;
 import com.han.community.notification.repository.NotificationActorRepository;
 import com.han.community.notification.repository.NotificationRepository;
 import com.han.community.user.repository.UserRepository;

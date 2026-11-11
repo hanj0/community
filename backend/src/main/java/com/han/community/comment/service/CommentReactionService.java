@@ -1,6 +1,6 @@
 package com.han.community.comment.service;
 
-import com.han.community.comment.dto.CommentReactionDto;
+import com.han.community.comment.dto.CommentReactionRequest;
 import com.han.community.comment.entity.Comment;
 import com.han.community.comment.entity.CommentReaction;
 import com.han.community.notification.entity.NotificationTargetType;
@@ -30,7 +30,7 @@ public class CommentReactionService {
     private final ApplicationEventPublisher publisher;
 
     @Transactional
-    public void reactToComment(Long commentId, Long userId, CommentReactionDto.Request requestDto) {
+    public void reactToComment(Long commentId, Long userId, CommentReactionRequest requestDto) {
 
         advisoryLockRepository.lock(commentId, userId);
 

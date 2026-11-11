@@ -1,7 +1,7 @@
 package com.han.community.integration.auth;
 
+import com.han.community.auth.dto.LoginRequest;
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.auth.dto.AuthDto;
 import com.han.community.user.entity.Role;
 import com.han.community.user.entity.User;
 import com.han.community.global.exception.BusinessException;
@@ -49,14 +49,14 @@ public class LoginFailureLimitTest extends IntegrationTestSupport {
         // 틀린 비밀번호로 로그인
         for(int i = 0; i < failureThreshold; i++) {
 
-            assertThatThrownBy(() -> authService.login(new AuthDto.LoginRequest("test@test.test", "wrongPW")))
+            assertThatThrownBy(() -> authService.login(new LoginRequest("test@test.test", "wrongPW")))
                     .isInstanceOf(BusinessException.class)
                     .extracting(e -> ((BusinessException) e).getErrorCode())
                     .isEqualTo(ErrorCode.INVALID_LOGIN);
         }
 
         // 올바른 비밀번호로 로그인
-        assertThatThrownBy(() -> authService.login(new AuthDto.LoginRequest("test@test.test", "test")))
+        assertThatThrownBy(() -> authService.login(new LoginRequest("test@test.test", "test")))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.LOGIN_LOCKED);
@@ -70,13 +70,13 @@ public class LoginFailureLimitTest extends IntegrationTestSupport {
 
         for(int i = 0; i < count; i++) {
 
-            assertThatThrownBy(() -> authService.login(new AuthDto.LoginRequest("test@test.test", "wrongPW")))
+            assertThatThrownBy(() -> authService.login(new LoginRequest("test@test.test", "wrongPW")))
                     .isInstanceOf(BusinessException.class)
                     .extracting(e -> ((BusinessException) e).getErrorCode())
                     .isEqualTo(ErrorCode.INVALID_LOGIN);
         }
 
-        Authentication auth = authService.login(new AuthDto.LoginRequest("test@test.test", "test"));
+        Authentication auth = authService.login(new LoginRequest("test@test.test", "test"));
 
         assertThat(((User)auth.getPrincipal()).getUsername()).isEqualTo("test");
     }

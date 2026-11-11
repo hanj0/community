@@ -1,4 +1,4 @@
-package com.han.community.global.debug;
+package com.han.community.global.dto;
 
 import java.util.List;
 

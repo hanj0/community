@@ -1,9 +1,9 @@
 package com.han.community.post.entity;
 
-import com.han.community.global.entity.BaseSoftDeleteEntity;
 import com.han.community.channel.entity.Channel;
-import com.han.community.user.entity.User;
+import com.han.community.global.entity.BaseSoftDeleteEntity;
 import com.han.community.post.dto.PostDto;
+import com.han.community.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.hibernate.annotations.SQLRestriction;

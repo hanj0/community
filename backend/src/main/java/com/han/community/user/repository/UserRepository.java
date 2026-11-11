@@ -1,0 +1,47 @@
+package com.han.community.user.repository;
+
+import com.han.community.user.dto.UserDto;
+import com.han.community.user.entity.User;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+    Optional<User> findByEmail(String email);
+    boolean existsByUsername(String username);
+
+    @Query("""
+SELECT new com.han.community.user.dto.UserDto$StatsResponse(
+    (SELECT COUNT(p) FROM Post p WHERE p.user.id = :userId),
+    (SELECT COUNT(c) FROM Comment c WHERE c.user.id = :userId),
+    (SELECT u.createdAt FROM User u WHERE u.id = :userId)
+)
+""")
+    UserDto.StatsResponse findUserStats(@Param("userId") Long userId);
+
+    List<User> findAllById(Iterable<Long> ids);
+
+    @Modifying
+    @Query("""
+UPDATE User u
+SET u.password = :hashed,
+u.updatedAt = CURRENT_TIMESTAMP
+WHERE u.id = :userId
+""")
+    void updatePassword(@Param("userId")Long userId, @Param("hashed")String hashed);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+UPDATE User u
+SET u.username = '탈퇴한 사용자',
+    u.email = '',
+    u.deletedAt = CURRENT_TIMESTAMP
+WHERE u.id = :id
+""")
+    void withdrawById(@Param("id")Long id);
+}

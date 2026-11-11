@@ -1,13 +1,13 @@
 package com.han.community.integration.auth;
 
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.dto.AuthDto;
-import com.han.community.entity.Role;
-import com.han.community.entity.User;
+import com.han.community.auth.dto.AuthDto;
+import com.han.community.user.entity.Role;
+import com.han.community.user.entity.User;
 import com.han.community.global.exception.BusinessException;
 import com.han.community.global.exception.ErrorCode;
-import com.han.community.repository.UserRepository;
-import com.han.community.service.AuthService;
+import com.han.community.user.repository.UserRepository;
+import com.han.community.auth.service.AuthService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

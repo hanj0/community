@@ -1,13 +1,17 @@
 package com.han.community.integration.softDelete;
 
+import com.han.community.channel.entity.Channel;
+import com.han.community.comment.entity.Comment;
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.dto.CommentDto;
-import com.han.community.entity.*;
-import com.han.community.repository.ChannelRepository;
-import com.han.community.repository.CommentRepository;
-import com.han.community.repository.PostRepository;
-import com.han.community.repository.UserRepository;
-import com.han.community.service.CommentService;
+import com.han.community.comment.dto.CommentDto;
+import com.han.community.post.entity.Post;
+import com.han.community.channel.repository.ChannelRepository;
+import com.han.community.comment.repository.CommentRepository;
+import com.han.community.post.repository.PostRepository;
+import com.han.community.user.repository.UserRepository;
+import com.han.community.comment.service.CommentService;
+import com.han.community.user.entity.Role;
+import com.han.community.user.entity.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

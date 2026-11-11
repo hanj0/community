@@ -1,15 +1,15 @@
 package com.han.community.integration;
 
 import com.han.community.common.IntegrationTestSupport;
-import com.han.community.dto.NotificationDto;
-import com.han.community.dto.common.CursorResponse;
-import com.han.community.entity.notification.Notification;
-import com.han.community.entity.notification.NotificationType;
-import com.han.community.entity.notification.NotificationTargetType;
-import com.han.community.event.NotificationEvent;
-import com.han.community.repository.NotificationActorRepository;
-import com.han.community.repository.NotificationRepository;
-import com.han.community.service.NotificationService;
+import com.han.community.notification.dto.NotificationDto;
+import com.han.community.global.debug.CursorResponse;
+import com.han.community.notification.entity.Notification;
+import com.han.community.notification.entity.NotificationType;
+import com.han.community.notification.entity.NotificationTargetType;
+import com.han.community.notification.event.NotificationEvent;
+import com.han.community.notification.repository.NotificationActorRepository;
+import com.han.community.notification.repository.NotificationRepository;
+import com.han.community.notification.service.NotificationService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

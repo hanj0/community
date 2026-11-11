@@ -1,6 +1,6 @@
 package com.han.community.integration.viewCount;
 
-import com.han.community.service.DbViewCountIncrementer;
+import com.han.community.post.viewcount.DbViewCountIncrementer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

@@ -62,11 +62,11 @@ public class PostService {
         return PostDto.SummaryResponse.from(savePost);
     }
 
-    public PostDto.DetailResponse view(Long postId, @Nullable Long userId, boolean alreadyViewed) {
+    public PostDto.DetailResponse view(Long postId, @Nullable Long userId, boolean firstView) {
 
         PostDto.DetailResponse response = getDetail(postId, userId);
 
-        if(!alreadyViewed) {
+        if(firstView) {
             viewCountIncrementer.increment(postId);
         }
 

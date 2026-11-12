@@ -4,10 +4,13 @@ import com.han.community.global.dto.PageResponse;
 import com.han.community.global.dto.SuccessResponse;
 import com.han.community.post.dto.PostDto;
 import com.han.community.post.service.PostService;
+import com.han.community.post.viewcount.ViewCountService;
+import com.han.community.post.viewcount.ViewerIdResolver;
 import com.han.community.user.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -20,13 +23,12 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/api/posts")
+@RequiredArgsConstructor
 public class PostController {
 
     private final PostService postService;
-
-    public PostController(PostService postService) {
-        this.postService = postService;
-    }
+    private final ViewerIdResolver viewerIdResolver;
+    private final ViewCountService viewCountService;
 
     @GetMapping("/{id}")
     public ResponseEntity<SuccessResponse<PostDto.DetailResponse>> getPostDetail(
@@ -35,21 +37,11 @@ public class PostController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
 
-        String cookieName = "vp_" + id;
-        boolean alreadyViewed = Arrays.stream(
-                        httpRequest.getCookies() != null ? httpRequest.getCookies() : new Cookie[0])
-                .anyMatch(c -> c.getName().equals(cookieName));
-
         Long userId = user == null ? null : user.getId();
-        PostDto.DetailResponse response = postService.view(id, userId, alreadyViewed);
+        String viewerId = viewerIdResolver.resolve(httpRequest, httpResponse, userId);
+        boolean firstView = viewCountService.setIfFirst(id, viewerId);
 
-        if(!alreadyViewed) {
-            Cookie cookie = new Cookie(cookieName, "true");
-            cookie.setMaxAge(24*60*60);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            httpResponse.addCookie(cookie);
-        }
+        PostDto.DetailResponse response = postService.view(id, userId, firstView);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

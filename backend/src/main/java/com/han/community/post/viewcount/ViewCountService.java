@@ -11,7 +11,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class ViewCountService {
 
-    private StringRedisTemplate redis;
+    private final StringRedisTemplate redis;
     private static final Duration VIEW_COUNT_DEDUPLICATION_TTL = Duration.ofHours(24);
 
     public boolean setIfFirst(Long postId, String viewerId) {

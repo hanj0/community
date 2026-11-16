@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name="view-count.mode", havingValue = "buffered")
+@ConditionalOnProperty(name="view-count.mode", havingValue = "buffered", matchIfMissing = true)
 @RequiredArgsConstructor
 public class BufferedViewCountIncrementer implements ViewCountIncrementer {
 

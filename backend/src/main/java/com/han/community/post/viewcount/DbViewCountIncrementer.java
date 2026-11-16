@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@ConditionalOnProperty(name = "view-count.mode", havingValue = "db", matchIfMissing = true)
+@ConditionalOnProperty(name = "view-count.mode", havingValue = "db")
 @RequiredArgsConstructor
 public class DbViewCountIncrementer implements ViewCountIncrementer {
 

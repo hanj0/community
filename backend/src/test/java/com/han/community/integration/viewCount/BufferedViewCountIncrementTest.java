@@ -15,13 +15,6 @@ public class BufferedViewCountIncrementTest extends AbstractViewCountIncrementTe
     @Override
     protected void SyncToDb() {
 
-//        try(Cursor<String> cursor = redisTemplate.scan(ScanOptions.scanOptions().match("post:viewCount:*").build())) {
-//            while(cursor.hasNext()) {
-//                String key = cursor.next();
-//
-//                System.out.println(key + " " );
-//            }
-//        }
         buffered.flushToDb();
     }
 

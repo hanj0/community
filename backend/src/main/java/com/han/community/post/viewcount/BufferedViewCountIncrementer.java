@@ -13,22 +13,22 @@ import java.util.List;
 
 @Slf4j
 @Component
-@ConditionalOnProperty(name="view-count.mode", havingValue = "buffered")
+@ConditionalOnProperty(name="view-count.mode", havingValue = "buffered", matchIfMissing = true)
 @RequiredArgsConstructor
 public class BufferedViewCountIncrementer implements ViewCountIncrementer {
 
     private final StringRedisTemplate redisTemplate;
     private final ViewCountJdbcRepository viewCountJdbcRepository;
 
-    private static final String VIEW_COUNT_PREFIX = "post:viewCount:";
-    private static final String DIRTY_SET_KEY = "post:dirty:viewCount";
     private static final int BATCH_SIZE = 500;
+    private static final String DIRTY_SET_KEY = "post:viewCount:dirty";
+    private static String viewCountKey(Long postId) { return "post:" + postId + ":viewCount"; }
 
     @Override
     public void increment(Long postId) {
 
         redisTemplate.opsForSet().add(DIRTY_SET_KEY, postId.toString());
-        redisTemplate.opsForValue().increment(VIEW_COUNT_PREFIX + postId);
+        redisTemplate.opsForValue().increment(viewCountKey(postId));
     }
 
     public record ViewCountDelta(
@@ -78,7 +78,7 @@ public class BufferedViewCountIncrementer implements ViewCountIncrementer {
 
         for(String member : members) {
 
-            String value = redisTemplate.opsForValue().getAndDelete(VIEW_COUNT_PREFIX + member);
+            String value = redisTemplate.opsForValue().getAndDelete(viewCountKey(Long.valueOf(member)));
             if(value == null) {
                 log.warn("dirty set에는 있으나 조회수key 없음: id={}", member);
                 continue;
@@ -97,7 +97,7 @@ public class BufferedViewCountIncrementer implements ViewCountIncrementer {
     private void restore(List<ViewCountDelta> chunk) {
 
         for(ViewCountDelta c : chunk) {
-            redisTemplate.opsForValue().increment(VIEW_COUNT_PREFIX + c.id(), c.delta());
+            redisTemplate.opsForValue().increment(viewCountKey(c.id()), c.delta());
         }
     }
 }

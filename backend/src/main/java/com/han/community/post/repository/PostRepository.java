@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -57,20 +56,14 @@ AND p.channel.id = :channelId
 SELECT p FROM Post p
 JOIN FETCH p.channel
 JOIN FETCH p.user
-WHERE p.likeCount >= :threshold
-AND p.createdAt >= :from
-ORDER BY p.likeCount DESC
+WHERE p.createdAt >= :from
+ORDER BY (p.likeCount * 3 + p.commentCount * 2 + p.viewCount * 0.1 - p.dislikeCount * 2) DESC
 """)
     Page<Post> findHotPosts(@Param("threshold")int threshold, @Param("from")LocalDateTime from, Pageable pageable);
 
     @Modifying
     @Query("UPDATE Post p SET p.viewCount = p.viewCount + 1 WHERE p.id = :id")
     void incrementViewCount(@Param("id")Long id);
-
-    @Transactional
-    @Modifying
-    @Query("UPDATE Post p SET p.viewCount = p.viewCount + :viewCount WHERE p.id = :id")
-    void flushViewCounts(@Param("viewCount")long viewCount, @Param("id")Long id);
 
     @Modifying
     @Query("UPDATE Post p SET p.commentCount = p.commentCount + 1 WHERE p.id = :id")
